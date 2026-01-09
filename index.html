@@ -1590,6 +1590,16 @@
             }
         }
 
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none;
+            }
+            
+            .sidebar.hidden ~ .main-content .menu-toggle {
+                display: flex;
+            }
+        }
+
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -2048,9 +2058,12 @@
                                     <tr>
                                         <th id="admin-ad-col-index">#</th>
                                         <th id="admin-ad-col-text">Текст</th>
+                                        <th id="admin-ad-col-link">Ссылка</th>
+                                        <th id="admin-ad-col-erid">ERID</th>
                                         <th id="admin-ad-col-impressions">Показы</th>
                                         <th id="admin-ad-col-clicks">Клики</th>
                                         <th id="admin-ad-col-ctr">CTR</th>
+                                        <th id="admin-ad-col-actions">Действия</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-ads-list">
@@ -2099,7 +2112,7 @@
     <script>
         'use strict';
         (function() {
-            const Telegram = window.Telegram.WebApp;
+            const Telegram = window.Telegram?.WebApp;
             if (Telegram && Telegram.initData) {
                 Telegram.expand();
                 Telegram.BackButton.hide();
@@ -2161,7 +2174,7 @@
                 },
                 userSessionId: Math.random().toString(36).substr(2, 9),
                 currentAd: null,
-                selectedPremiumPlan: 'monthly',
+                selectedPremiumPlan: null,
                 adChangeInterval: null
             };
 
@@ -2541,11 +2554,11 @@
                     clearChat: "Очистити чат",
                     settings: "Налаштування",
                     online: "Онлайн",
-                    aiDisclaimer: "Відповіді згенеровані штучним інтелектом і можуть містити помилки. Перевіряйте важливу інформацію.",
+                    aiDisclaimer: "Відповіді згенеровані штучним інтелектом і можуть містити помилки. Перевіряйте важливу інфармацію.",
                     languageChanged: "Мову змінено",
                     chatCleared: "Чат очищено",
                     confirmClear: "Ви впевнені, що хочете очистити чат? Усі повідомлення будуть видалені.",
-                    confirmDeleteChat: "Видалити цей чат? Цю дію не можна скасувати.",
+                    confirmDeleteChat: "Видаліть цей чат? Цю дію не можна скасувати.",
                     sendError: "Вибачте, сталася помилка. Будь ласка, спробуйте пізніше.",
                     copySuccess: "Текст скопійовано",
                     exampleQuestions: ["Як доглядати за орхідеєю?", "Чому жовтіють листя у фікуса?", "Які добрива підходять для троянд?", "Як часто поливати кактуси?"],
@@ -3423,7 +3436,8 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                 },
 
                 setupTelegramLogin() {
-                    if (window.Telegram && window.Telegram.WebApp && !window.Telegram.WebApp.initData) {
+                    const isInTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData;
+                    if (!isInTelegram) {
                         DOM.telegramLoginBtn.style.display = 'flex';
                         DOM.telegramLoginBtn.addEventListener('click', () => {
                             const script = document.createElement('script');
@@ -3433,8 +3447,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                             script.setAttribute('data-size', 'large');
                             script.setAttribute('data-onauth', 'onTelegramAuth(user)');
                             script.setAttribute('data-request-access', 'write');
-                            DOM.telegramLoginContainer.innerHTML = '';
-                            DOM.telegramLoginContainer.appendChild(script);
+                            document.head.appendChild(script);
                         });
                     }
                 },
@@ -4076,31 +4089,28 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         row.innerHTML = DOMPurify.sanitize(`
                             <td>${index + 1}</td>
                             <td>${escapeHtml(ad.text.substring(0, 50) + (ad.text.length > 50 ? '...' : ''))}</td>
+                            <td>${ad.link || ''}</td>
+                            <td>${ad.erid || ''}</td>
                             <td>${impressions}</td>
                             <td>${clicks}</td>
                             <td>${ctr}%</td>
-                        `);
-                        DOM.adminAdsList.appendChild(row);
-                    });
-                },
-
-                updateAdminAdsManagementList() {
-                    DOM.adminAdsManagementList.innerHTML = '';
-                    
-                    state.ads.forEach((ad, index) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = DOMPurify.sanitize(`
-                            <td>${index + 1}</td>
-                            <td>${escapeHtml(ad.text.substring(0, 50) + (ad.text.length > 50 ? '...' : ''))}</td>
-                            <td>${ad.link || ''}</td>
-                            <td>${ad.erid || ''}</td>
                             <td>
+                                <button class="action-btn admin-edit-ad" data-index="${index}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <button class="action-btn admin-delete-ad" data-index="${index}">
-                                    <i class="fas fa-trash"></i> Удалить
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         `);
-                        DOM.adminAdsManagementList.appendChild(row);
+                        DOM.adminAdsList.appendChild(row);
+                    });
+                    
+                    document.querySelectorAll('.admin-edit-ad').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const index = parseInt(e.target.closest('button').dataset.index);
+                            this.editAd(index);
+                        });
                     });
                     
                     document.querySelectorAll('.admin-delete-ad').forEach(btn => {
@@ -4109,6 +4119,27 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                             this.deleteAd(index);
                         });
                     });
+                },
+
+                editAd(index) {
+                    const ad = state.ads[index];
+                    const newText = prompt('Новый текст рекламы:', ad.text);
+                    if (newText !== null) {
+                        const newLink = prompt('Новая ссылка:', ad.link);
+                        const newErid = prompt('Новый ERID:', ad.erid);
+                        
+                        state.ads[index] = {
+                            text: newText.trim(),
+                            link: newLink ? newLink.trim() : '',
+                            erid: newErid ? newErid.trim() : '',
+                            isPremiumPromo: ad.isPremiumPromo || false
+                        };
+                        
+                        saveToStorage('neuroflora_ads', state.ads);
+                        this.updateAdsList();
+                        this.updateAdminAdsManagementList();
+                        this.updateSidebarAd();
+                    }
                 },
 
                 deleteAd(index) {
@@ -4313,6 +4344,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     if (state.currentAd) {
                         if (state.currentAd.isPremiumPromo) {
                             DOM.premiumModal.classList.add('active');
+                            this.selectPremiumPlan(state.selectedPremiumPlan);
                             if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                         } else if (state.currentAd.link && !state.userSettings.isPremium) {
                             const adIndex = state.ads.findIndex(ad => ad.text === state.currentAd.text);
@@ -4349,11 +4381,51 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         DOM.premiumPlanMonthly.classList.add('selected');
                         if (popularBadgeMonthly) popularBadgeMonthly.style.display = 'block';
                         if (popularBadgeYearly) popularBadgeYearly.style.display = 'none';
-                    } else {
+                    } else if (plan === 'yearly') {
                         DOM.premiumPlanYearly.classList.add('selected');
                         if (popularBadgeMonthly) popularBadgeMonthly.style.display = 'none';
                         if (popularBadgeYearly) popularBadgeYearly.style.display = 'block';
+                    } else {
+                        if (popularBadgeMonthly) popularBadgeMonthly.style.display = 'none';
+                        if (popularBadgeYearly) popularBadgeYearly.style.display = 'none';
                     }
+                },
+
+                updateAdminAdsManagementList() {
+                    DOM.adminAdsManagementList.innerHTML = '';
+                    
+                    state.ads.forEach((ad, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = DOMPurify.sanitize(`
+                            <td>${index + 1}</td>
+                            <td>${escapeHtml(ad.text.substring(0, 50) + (ad.text.length > 50 ? '...' : ''))}</td>
+                            <td>${ad.link || ''}</td>
+                            <td>${ad.erid || ''}</td>
+                            <td>
+                                <button class="action-btn admin-edit-ad-management" data-index="${index}">
+                                    <i class="fas fa-edit"></i> Изменить
+                                </button>
+                                <button class="action-btn admin-delete-ad-management" data-index="${index}">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </button>
+                            </td>
+                        `);
+                        DOM.adminAdsManagementList.appendChild(row);
+                    });
+                    
+                    document.querySelectorAll('.admin-edit-ad-management').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const index = parseInt(e.target.closest('button').dataset.index);
+                            this.editAd(index);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.admin-delete-ad-management').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const index = parseInt(e.target.closest('button').dataset.index);
+                            this.deleteAd(index);
+                        });
+                    });
                 },
 
                 saveChats() {
@@ -4385,6 +4457,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     DOM.themeToggle.addEventListener('click', () => this.toggleTheme());
                     DOM.premiumShortcutBtn.addEventListener('click', () => {
                         DOM.premiumModal.classList.add('active');
+                        this.selectPremiumPlan(state.selectedPremiumPlan);
                         if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                     });
                     DOM.menuToggle.addEventListener('click', () => this.toggleSidebar());
@@ -4405,6 +4478,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     });
                     DOM.premiumBtn.addEventListener('click', () => {
                         DOM.premiumModal.classList.add('active');
+                        this.selectPremiumPlan(state.selectedPremiumPlan);
                         if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                         if (Utils.isMobile()) this.closeSidebar();
                     });
