@@ -251,30 +251,6 @@
             transform: translateY(-1px);
         }
 
-        .telegram-login-btn {
-            width: 100%;
-            padding: 14px;
-            background: #0088cc;
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            font-size: 15px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin: 12px 0;
-            text-decoration: none;
-        }
-
-        .telegram-login-btn:hover {
-            background: #0077b5;
-            transform: translateY(-1px);
-        }
-
         .sidebar-nav {
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
@@ -1319,6 +1295,7 @@
             border-collapse: collapse;
             margin-top: 16px;
             font-size: 14px;
+            min-width: 800px;
         }
 
         .admin-table th {
@@ -1328,12 +1305,18 @@
             color: var(--text-primary);
             font-weight: 600;
             border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .admin-table td {
             padding: 12px;
             border-bottom: 1px solid var(--border-light);
             vertical-align: top;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .admin-table tr:hover {
@@ -1710,10 +1693,7 @@
                 </button>
                 
                 <div id="telegram-login-container">
-                    <a class="telegram-login-btn" href="https://oauth.telegram.org/auth?bot_id=7981652183&origin=https://neuroflora.ru&request_access=write&lang=ru" id="telegram-login-btn" style="display: none;">
-                        <i class="fab fa-telegram"></i>
-                        <span id="telegram-login-text">Войти через Telegram</span>
-                    </a>
+                    <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="NeuroFloraBot" data-size="large" data-onauth="onTelegramAuthWidget"></script>
                 </div>
             </div>
 
@@ -2051,7 +2031,7 @@
                             <span id="admin-ads-list-title">Статистика по рекламе</span>
                         </div>
                         
-                        <div style="max-height: 300px; overflow-y: auto; margin-top: 16px;">
+                        <div style="max-height: 300px; overflow-y: auto; overflow-x: auto; margin-top: 16px;">
                             <table class="admin-table">
                                 <thead>
                                     <tr>
@@ -2087,7 +2067,7 @@
                             </button>
                         </div>
 
-                        <div style="max-height: 400px; overflow-y: auto; margin-top: 24px;">
+                        <div style="max-height: 400px; overflow-y: auto; overflow-x: auto; margin-top: 24px;">
                             <table class="admin-table">
                                 <thead>
                                     <tr>
@@ -2178,30 +2158,11 @@
                 adChangeInterval: null
             };
 
-            function parseTelegramAuthData() {
-                const hash = window.location.hash.substring(1);
-                if (!hash) return null;
-                
-                try {
-                    const params = new URLSearchParams(hash);
-                    const user = {};
-                    if (params.get('id')) user.id = parseInt(params.get('id'));
-                    if (params.get('first_name')) user.first_name = params.get('first_name');
-                    if (params.get('last_name')) user.last_name = params.get('last_name');
-                    if (params.get('username')) user.username = params.get('username');
-                    if (params.get('photo_url')) user.photo_url = params.get('photo_url');
-                    
-                    if (user.id) {
-                        window.location.hash = '';
-                        return user;
-                    }
-                } catch (e) {
-                    console.error('Error parsing Telegram auth:', e);
-                }
-                return null;
+            function onTelegramAuthWidget(user) {
+                handleTelegramAuth(user);
             }
 
-            function onTelegramAuth(user) {
+            function handleTelegramAuth(user) {
                 DOM.userName.textContent = user.first_name || 'Пользователь';
                 if (user.username) {
                     DOM.userName.textContent += ` (@${user.username})`;
@@ -2413,8 +2374,7 @@
                     premiumBuyMonthlyText: "Скоро",
                     premiumBuyYearlyText: "Скоро",
                     premiumFooterText: "После оплаты подписка активируется автоматически.",
-                    popularBadgeText: "ПОПУЛЯРНЫЙ",
-                    telegramLogin: "Войти через Telegram"
+                    popularBadgeText: "ПОПУЛЯРНЫЙ"
                 },
                 en: {
                     welcomeTitle: "NeuroFlora",
@@ -2561,8 +2521,7 @@
                     premiumBuyMonthlyText: "Soon",
                     premiumBuyYearlyText: "Soon",
                     premiumFooterText: "Subscription activates automatically after payment.",
-                    popularBadgeText: "POPULAR",
-                    telegramLogin: "Login via Telegram"
+                    popularBadgeText: "POPULAR"
                 }
             };
 
@@ -2613,16 +2572,13 @@
                 adminAdsTotalImpressions: document.getElementById('admin-ads-total-impressions'),
                 adminAdsTotalClicks: document.getElementById('admin-ads-total-clicks'),
                 adminAdsCTR: document.getElementById('admin-ads-ctr'),
-                telegramLoginBtn: document.getElementById('telegram-login-btn'),
-                telegramLoginText: document.getElementById('telegram-login-text'),
-                telegramLoginContainer: document.getElementById('telegram-login-container'),
-                premiumPlanMonthly: document.getElementById('premium-plan-monthly'),
-                premiumPlanYearly: document.getElementById('premium-plan-yearly'),
                 adminNewAdText: document.getElementById('admin-new-ad-text'),
                 adminNewAdLink: document.getElementById('admin-new-ad-link'),
                 adminNewAdErid: document.getElementById('admin-new-ad-erid'),
                 adminAddAd: document.getElementById('admin-add-ad'),
-                adminAdsManagementList: document.getElementById('admin-ads-management-list')
+                adminAdsManagementList: document.getElementById('admin-ads-management-list'),
+                premiumPlanMonthly: document.getElementById('premium-plan-monthly'),
+                premiumPlanYearly: document.getElementById('premium-plan-yearly')
             };
 
             const API = {
@@ -2644,7 +2600,7 @@
                             en: "Respond in English with plain text only, no formatting."
                         };
 
-                        const model = "openai/gpt-oss-120b:free";
+                        const model = "google/gemma-3n-e2b-it:free";
                         const t = texts[state.userSettings.language];
                         
                         const premiumPromptAddition = state.userSettings.isPremium ? 
@@ -2829,9 +2785,9 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         state.ads = savedAds;
                     }
                     
-                    const telegramUser = parseTelegramAuthData();
-                    if (telegramUser) {
-                        onTelegramAuth(telegramUser);
+                    const isInTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData;
+                    if (!isInTelegram) {
+                        document.getElementById('telegram-login-container').style.display = 'block';
                     }
                     
                     this.setupUserProfile();
@@ -2846,7 +2802,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     this.handleMobileView();
                     this.updatePremiumUI();
                     this.updateSidebarAd();
-                    this.setupTelegramLogin();
                     this.setupPremiumPlanSelection();
                     this.startAdRotation();
                     this.updateAdminAdsManagementList();
@@ -2881,17 +2836,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                             adminBadge.innerHTML = '<i class="fas fa-shield-alt"></i>';
                             DOM.userAvatar.appendChild(adminBadge);
                         }
-                    }
-                },
-
-                setupTelegramLogin() {
-                    const isInTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData;
-                    if (!isInTelegram) {
-                        DOM.telegramLoginBtn.style.display = 'flex';
-                        DOM.telegramLoginBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            window.location.href = "https://oauth.telegram.org/auth?bot_id=7981652183&origin=https://neuroflora.ru&request_access=write&lang=ru";
-                        });
                     }
                 },
 
@@ -3443,8 +3387,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         'premium-buy-monthly-text': t.premiumBuyMonthlyText,
                         'premium-buy-yearly-text': t.premiumBuyYearlyText,
                         'premium-footer-text': t.premiumFooterText,
-                        'popular-badge-text': t.popularBadgeText,
-                        'telegram-login-text': t.telegramLogin
+                        'popular-badge-text': t.popularBadgeText
                     };
                     
                     Object.keys(elements).forEach(id => {
@@ -4063,7 +4006,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                 }
             };
 
-            window.onTelegramAuth = onTelegramAuth;
+            window.onTelegramAuthWidget = onTelegramAuthWidget;
             document.addEventListener('DOMContentLoaded', () => App.init());
         })();
     </script>
