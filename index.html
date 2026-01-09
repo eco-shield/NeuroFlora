@@ -6,7 +6,6 @@
     <title>NeuroFlora</title>
     <link rel="icon" type="image/x-icon" href="https://i.postimg.cc/vBCd4Vpk/Bez-nazvania55-20251215013207.png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="NeuroFloraBot" data-size="large" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
     <style>
@@ -1711,10 +1710,10 @@
                 </button>
                 
                 <div id="telegram-login-container">
-                    <div class="telegram-login-btn" id="telegram-login-btn" style="display: none;">
+                    <a class="telegram-login-btn" href="https://oauth.telegram.org/auth?bot_id=7981652183&origin=https://neuroflora.ru&request_access=write&lang=ru" id="telegram-login-btn" style="display: none;">
                         <i class="fab fa-telegram"></i>
                         <span id="telegram-login-text">Войти через Telegram</span>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -2287,7 +2286,6 @@
                     extendedLimit: "Расширенный лимит",
                     premiumFeature4Desc: "4000 символов вместо 2000",
                     extendedHistory: "Расширенная история",
-                    premiumFeature5Desc: "Храните больше чатов",
                     monthly: "Ежемесячная",
                     yearly: "Годовая",
                     buyPremium: "Купить Premium",
@@ -3212,7 +3210,7 @@
                             fr: "Répondez en français avec du texte simple uniquement, sans formatage."
                         };
 
-                        const model = "openai/gpt-3.5-turbo";
+                        const model = "openai/gpt-oss-120b:free";
                         const t = texts[state.userSettings.language];
                         
                         const premiumPromptAddition = state.userSettings.isPremium ? 
@@ -3439,15 +3437,9 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     const isInTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData;
                     if (!isInTelegram) {
                         DOM.telegramLoginBtn.style.display = 'flex';
-                        DOM.telegramLoginBtn.addEventListener('click', () => {
-                            const script = document.createElement('script');
-                            script.async = true;
-                            script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                            script.setAttribute('data-telegram-login', 'NeuroFloraBot');
-                            script.setAttribute('data-size', 'large');
-                            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-                            script.setAttribute('data-request-access', 'write');
-                            document.head.appendChild(script);
+                        DOM.telegramLoginBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            window.location.href = "https://oauth.telegram.org/auth?bot_id=7981652183&origin=https://neuroflora.ru&request_access=write&lang=ru";
                         });
                     }
                 },
@@ -4162,8 +4154,8 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     state.ads.push(newAd);
                     saveToStorage('neuroflora_ads', state.ads);
                     this.updateAdsList();
-                    this.updateAdminAdsManagementList();
-                    this.updateSidebarAd();
+                        this.updateAdminAdsManagementList();
+                        this.updateSidebarAd();
                 },
 
                 setUserPremium(userId, plan, days) {
