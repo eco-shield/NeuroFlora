@@ -1,0 +1,3432 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeuroFlora</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="NeuroFloraBot" data-size="large" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+    <style>
+        :root {
+            --primary: #10a37f;
+            --primary-light: rgba(16, 163, 127, 0.08);
+            --primary-dark: #0d8c6d;
+            --accent: #6e41e2;
+            --success: #10a37f;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --premium: #ff6b35;
+            --premium-gradient: linear-gradient(135deg, #ff6b35, #ffa62e);
+            --admin: #6e41e2;
+            --admin-gradient: linear-gradient(135deg, #6e41e2, #8b5cf6);
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --bg-sidebar: #fafafa;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #8e8e93;
+            --text-muted: #999999;
+            --border: #e9ecef;
+            --border-light: #f1f3f5;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --radius: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --radius-xs: 6px;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --sidebar-width: 300px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #soon-label {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--primary);
+            opacity: 0.1;
+            z-index: 10000;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            height: -webkit-fill-available;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+            z-index: 1000;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle-btn {
+            position: absolute;
+            top: 20px;
+            left: 100%;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            z-index: 1001;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            margin-left: 8px;
+        }
+
+        .sidebar.hidden .sidebar-toggle-btn {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .premium-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: var(--premium-gradient);
+            border-radius: 50%;
+            border: 2px solid var(--bg-sidebar);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+
+        .admin-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: var(--admin-gradient);
+            border-radius: 50%;
+            border: 2px solid var(--bg-sidebar);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .premium-tag {
+            background: var(--premium-gradient);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .admin-tag {
+            background: var(--admin-gradient);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .new-chat-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .sidebar-nav {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0 12px;
+            border-radius: var(--radius-md);
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .history-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 12px 20px;
+        }
+
+        .history-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 20px 8px 8px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-sidebar);
+            z-index: 1;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-item {
+            padding: 14px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border: 1px solid transparent;
+            position: relative;
+        }
+
+        .history-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-light);
+        }
+
+        .history-item:hover .history-delete-btn {
+            opacity: 1;
+        }
+
+        .history-item.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .history-preview {
+            flex: 1;
+            min-width: 0;
+            padding-right: 30px;
+        }
+
+        .history-text {
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .history-time {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .history-delete-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-xs);
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .history-delete-btn:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            margin-left: 0;
+            transition: margin-left var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar:not(.hidden) ~ .main-content {
+            margin-left: var(--sidebar-width);
+        }
+
+        .main-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-primary);
+            z-index: 100;
+            flex-shrink: 0;
+            min-height: 64px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .premium-header-btn {
+            background: var(--premium-gradient);
+            color: white;
+        }
+
+        .admin-header-btn {
+            background: var(--admin-gradient);
+            color: white;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            position: relative;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 140px;
+            scroll-behavior: smooth;
+        }
+
+        .welcome-message {
+            max-width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            padding: 40px 20px;
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .welcome-message.show {
+            display: flex;
+        }
+
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            background-image: url('https://i.postimg.cc/vBCd4Vpk/Bez-nazvania55-20251215013207.png');
+            background-size: 120%;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin-bottom: 24px;
+            border: 2px solid var(--border);
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.5;
+            max-width: 500px;
+        }
+
+        .example-questions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 32px;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .example-card {
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .example-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .example-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 16px;
+            max-width: 100%;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .message-container {
+            display: flex;
+            max-width: 85%;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .user-message .message-container {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .user-avatar-sm {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .bot-avatar-sm {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            background-image: url('https://i.postimg.cc/SxdqDwpy/Bez-nazvania54-20251214232638.png');
+        }
+
+        .message-content-wrapper {
+            flex: 1;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .message-author {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .message-content {
+            background: var(--bg-secondary);
+            border-radius: 18px;
+            padding: 12px 16px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 15px;
+            border: 1px solid transparent;
+        }
+
+        .user-message .message-content {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message .message-content {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .premium-feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--premium-gradient);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .action-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .premium-action-btn {
+            background: var(--premium-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        .premium-action-btn:hover {
+            background: linear-gradient(135deg, #ff5a1f, #ff8c00);
+            color: white;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            max-width: 85%;
+            margin-bottom: 16px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        .input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            padding: 16px 20px 20px;
+            transition: left var(--transition);
+            z-index: 100;
+        }
+
+        .sidebar:not(.hidden) ~ .input-container {
+            left: var(--sidebar-width);
+        }
+
+        .input-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            width: 100%;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            resize: none;
+            max-height: 120px;
+            min-height: 52px;
+            line-height: 1.5;
+            transition: var(--transition);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .char-count {
+            flex-shrink: 0;
+        }
+
+        .ai-disclaimer {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 12px;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            line-height: 1.4;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .settings-modal {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-close {
+            background: var(--bg-secondary);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .modal-content {
+            padding: 24px;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .language-option {
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .language-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .language-option.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .checkmark {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .premium-modal {
+            max-width: 400px;
+        }
+
+        .admin-modal {
+            max-width: 600px;
+        }
+
+        .premium-icon-large {
+            width: 80px;
+            height: 80px;
+            background: var(--premium-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+            color: white;
+        }
+
+        .admin-icon-large {
+            width: 80px;
+            height: 80px;
+            background: var(--admin-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+            color: white;
+        }
+
+        .premium-modal-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: var(--premium-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .admin-modal-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: var(--admin-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .premium-features {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .premium-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .premium-feature i {
+            color: var(--premium);
+            font-size: 18px;
+        }
+
+        .admin-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .admin-feature i {
+            color: var(--admin);
+            font-size: 18px;
+        }
+
+        .admin-panel {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-top: 16px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .admin-panel.show {
+            display: block;
+        }
+
+        .admin-panel h4 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .admin-stat {
+            text-align: center;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .admin-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .admin-label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .admin-tab {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .admin-tab.active {
+            background: var(--admin);
+            color: white;
+        }
+
+        .admin-tab:hover:not(.active) {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .admin-table th {
+            text-align: left;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+
+        .admin-table tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .admin-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-family);
+            font-size: 14px;
+        }
+
+        .admin-select {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .admin-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .admin-checkbox input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sidebar-ad {
+            margin: 12px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: none;
+            background: var(--bg-primary);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .sidebar-ad.show {
+            display: block;
+        }
+
+        .sidebar-ad-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                max-width: 320px;
+                transform: translateX(-100%);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle-btn {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .main-header {
+                padding: 12px 16px;
+                min-height: 56px;
+            }
+
+            .chat-container {
+                padding: 16px;
+                padding-bottom: 140px;
+            }
+
+            .input-container {
+                padding: 12px 16px 16px;
+                left: 0 !important;
+            }
+
+            .welcome-message {
+                padding: 32px 16px;
+            }
+
+            .welcome-title {
+                font-size: 24px;
+            }
+
+            .welcome-subtitle {
+                font-size: 15px;
+                margin-bottom: 24px;
+            }
+
+            .example-questions {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin-top: 24px;
+            }
+
+            .example-card {
+                padding: 16px;
+            }
+
+            .message-container {
+                max-width: 90%;
+            }
+
+            .message-content {
+                padding: 14px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-value {
+                font-size: 22px;
+            }
+
+            .language-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .language-option {
+                padding: 14px 12px;
+                font-size: 14px;
+            }
+
+            .history-delete-btn {
+                opacity: 1;
+            }
+
+            .sidebar:not(.hidden) ~ .main-content {
+                margin-left: 0;
+            }
+
+            .admin-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-table {
+                font-size: 12px;
+            }
+
+            .admin-table th,
+            .admin-table td {
+                padding: 8px;
+            }
+
+            .admin-controls {
+                flex-direction: column;
+            }
+
+            .sidebar-ad {
+                margin: 8px;
+                padding: 12px;
+            }
+
+            #soon-label {
+                font-size: 48px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .language-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+            }
+
+            .input-field {
+                padding: 12px 14px;
+                min-height: 48px;
+            }
+
+            .send-button {
+                width: 40px;
+                height: 40px;
+            }
+
+            .sidebar-header {
+                padding: 16px;
+            }
+
+            .user-avatar {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+
+            .nav-item {
+                padding: 12px 16px;
+                margin: 0 8px;
+            }
+
+            .message-container {
+                max-width: 95%;
+            }
+
+            #soon-label {
+                font-size: 36px;
+            }
+        }
+
+        .dark-theme {
+            --primary: #10a37f;
+            --primary-light: rgba(16, 163, 127, 0.15);
+            --accent: #8b5cf6;
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --bg-sidebar: #252525;
+            --bg-card: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-tertiary: #8e8e93;
+            --text-muted: #6b7280;
+            --border: #404040;
+            --border-light: #333333;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="soon-label">Скоро</div>
+    
+    <div class="app-container">
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle-btn" id="sidebar-toggle">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="sidebar-header">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">
+                            Пользователь
+                            <span class="premium-tag" id="premium-tag" style="display: none;">PREMIUM</span>
+                            <span class="admin-tag" id="admin-tag" style="display: none;">ADMIN</span>
+                        </div>
+                        <div class="user-status">
+                            <span class="status-dot"></span>
+                            <span id="user-status-text">Онлайн</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="new-chat-btn" id="new-chat-btn">
+                    <i class="fas fa-plus"></i>
+                    <span id="new-chat-text">Новый чат</span>
+                </button>
+                
+                <div id="telegram-login-container" style="margin-top: 10px; display: none;"></div>
+            </div>
+
+            <div class="sidebar-ad" id="sidebar-ad">
+                <div class="sidebar-ad-text" id="sidebar-ad-text"></div>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-item active" data-tab="chat">
+                    <i class="fas fa-comment"></i>
+                    <span id="chat-tab-text">Чат</span>
+                </div>
+                <div class="nav-item" id="settings-btn">
+                    <i class="fas fa-cog"></i>
+                    <span id="settings-tab-text">Настройки</span>
+                </div>
+                <div class="nav-item" id="admin-btn" style="display: none;">
+                    <i class="fas fa-shield-alt"></i>
+                    <span id="admin-tab-text">Админ-панель</span>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <div class="history-title">
+                    <span id="history-title-text">История чатов</span>
+                </div>
+                <div class="history-list" id="history-list"></div>
+            </div>
+        </div>
+
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <div class="main-content">
+            <div class="main-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="chat-title" id="current-chat-title">NeuroFlora</div>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="header-btn" id="clear-chat">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-container" id="chat-container">
+                    <div class="welcome-message" id="welcome-message">
+                        <div class="welcome-icon"></div>
+                        <h1 class="welcome-title" id="welcome-title">NeuroFlora</h1>
+                        <p class="welcome-subtitle" id="welcome-subtitle">
+                            Ваш AI-помощник по садоводству. Задавайте вопросы о растениях,<br>
+                            уходе за ними, болезнях и удобрениях.
+                        </p>
+                        <div class="example-questions" id="example-questions">
+                            <div class="example-card" data-question="Как ухаживать за орхидеей?">
+                                <div class="example-text">Как ухаживать за орхидеей?</div>
+                            </div>
+                            <div class="example-card" data-question="Почему желтеют листья у фикуса?">
+                                <div class="example-text">Почему желтеют листья у фикуса?</div>
+                            </div>
+                            <div class="example-card" data-question="Какие удобрения подходят для роз?">
+                                <div class="example-text">Какие удобрения подходят для роз?</div>
+                            </div>
+                            <div class="example-card" data-question="Как часто поливать кактусы?">
+                                <div class="example-text">Как часто поливать кактусы?</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="messages-container"></div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <div class="input-area">
+                        <textarea class="input-field" id="message-input" placeholder="Задайте вопрос о растениях..." rows="1" maxlength="2000"></textarea>
+                        <button class="send-button" id="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="input-footer">
+                        <div class="char-count">0/2000</div>
+                        <div>NeuroFlora AI • <span id="model-name">FloraGPT FREE</span></div>
+                    </div>
+                    <div class="ai-disclaimer" id="ai-disclaimer">
+                        Ответы сгенерированы искусственным интеллектом и могут содержать ошибки. Проверяйте важную информацию.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="settings-modal">
+            <div class="settings-modal">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-cog"></i>
+                        <span id="modal-title-text">Настройки</span>
+                    </div>
+                    <button class="modal-close" id="modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-content">
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-user"></i>
+                            <span id="account-title-text">Аккаунт</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="account-status">Free</div>
+                            <div class="stat-label" id="account-label-text">Статус подписки</div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-chart-bar"></i>
+                            <span id="stats-title-text">Статистика</span>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-total">0</div>
+                                <div class="stat-label" id="total-questions-text">Всего вопросов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-helpful">0%</div>
+                                <div class="stat-label" id="helpful-answers-text">Полезных ответов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-language">RU</div>
+                                <div class="stat-label" id="language-text">Язык</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-language"></i>
+                            <span id="interface-language-text">Язык интерфейса</span>
+                        </div>
+                        <div class="language-grid">
+                            <div class="language-option active" data-lang="ru">
+                                🇷🇺 Русский
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                🇺🇸 English
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="language-option" data-lang="uk">
+                                🇺🇦 Українська
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="language-option" data-lang="be">
+                                🇧🇾 Беларуская
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="language-option" data-lang="kk">
+                                🇰🇿 Қазақша
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="language-option" data-lang="fr">
+                                🇫🇷 Français
+                                <span class="checkmark"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="admin-modal">
+            <div class="settings-modal admin-modal">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-shield-alt"></i>
+                        <span id="admin-modal-title-text">Админ-панель</span>
+                    </div>
+                    <button class="modal-close" id="admin-modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-content">
+                    <div class="admin-icon-large">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h2 class="admin-modal-title" id="admin-panel-title">Панель администратора</h2>
+                    
+                    <div class="admin-tabs">
+                        <button class="admin-tab active" data-tab="premium" id="admin-tab-premium">Premium</button>
+                        <button class="admin-tab" data-tab="ads" id="admin-tab-ads">Реклама</button>
+                    </div>
+
+                    <div class="admin-tab-content active" id="admin-premium-tab">
+                        <div class="section-title">
+                            <i class="fas fa-crown"></i>
+                            <span id="admin-premium-title">Управление Premium</span>
+                        </div>
+                        
+                        <div class="admin-controls">
+                            <input type="text" class="admin-input" id="admin-premium-user-id" placeholder="ID пользователя">
+                            <select class="admin-select" id="admin-premium-plan">
+                                <option value="free" id="admin-plan-free">Free</option>
+                                <option value="monthly" id="admin-plan-monthly">Ежемесячный</option>
+                                <option value="yearly" id="admin-plan-yearly">Годовой</option>
+                            </select>
+                            <input type="text" class="admin-input" id="admin-premium-days" placeholder="Дней (0 = навсегда)">
+                            <button class="admin-button" id="admin-premium-apply">
+                                <i class="fas fa-check"></i>
+                                <span id="admin-premium-apply-text">Применить</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-tab-content" id="admin-ads-tab">
+                        <div class="section-title">
+                            <i class="fas fa-ad"></i>
+                            <span id="admin-ads-stats-title">Статистика рекламы</span>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="admin-ads-total-impressions">0</div>
+                                <div class="stat-label" id="admin-ads-total-impressions-label">Всего показов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="admin-ads-total-clicks">0</div>
+                                <div class="stat-label" id="admin-ads-total-clicks-label">Всего кликов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="admin-ads-ctr">0%</div>
+                                <div class="stat-label" id="admin-ads-ctr-label">CTR</div>
+                            </div>
+                        </div>
+
+                        <div class="section-title" style="margin-top: 24px;">
+                            <i class="fas fa-list"></i>
+                            <span id="admin-ads-list-title">Статистика по блокам</span>
+                        </div>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th id="admin-ad-col-index">#</th>
+                                        <th id="admin-ad-col-text">Текст</th>
+                                        <th id="admin-ad-col-impressions">Показы</th>
+                                        <th id="admin-ad-col-clicks">Клики</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-ads-list">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        (function() {
+            const Telegram = window.Telegram.WebApp;
+            if (Telegram.initData) {
+                Telegram.expand();
+                Telegram.BackButton.hide();
+            }
+
+            const ENCODED_API_KEY = "c2stb3ItdjEtZWNjODBmYmRhMjBkYzdmOTBhMjNhOWIyMGNmNDM3NDE4NjRjYjgwOTAyODZkMjEwNDVmZDVlODFiODkzZTY0MA==";
+            const OPENROUTER_API_KEY = atob(ENCODED_API_KEY);
+            const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+            
+            const ADMIN_ID = 1401948006;
+            
+            const state = {
+                currentChatId: 'default',
+                chats: {},
+                userSettings: {
+                    language: 'ru',
+                    theme: 'light',
+                    sidebarHidden: false,
+                    isPremium: false,
+                    premiumUntil: null,
+                    hideAds: false,
+                    lastAdShown: null,
+                    adFrequency: 300000,
+                    adStats: {
+                        impressions: {},
+                        clicks: {},
+                        uniqueUsers: new Set(),
+                        totalImpressions: 0,
+                        totalClicks: 0
+                    }
+                },
+                messageRatings: {},
+                currentAdIndex: 0,
+                ads: [
+                    "Поддержите развитие проекта! Перейдите на Premium для доступа ко всем функциям.",
+                    "Нужен совет по уходу за растениями? Premium подписка даёт доступ к расширенной базе знаний.",
+                    "Устали от рекламы? Оформите Premium подписку и общайтесь без отвлекающих сообщений.",
+                    "Premium подписка позволяет задавать вопросы длиной до 4000 символов и получать развернутые ответы.",
+                    "С Premium вы получаете приоритетную обработку запросов и ускоренные ответы.",
+                    "Храните больше чатов с Premium подпиской. Ни одна консультация не будет потеряна.",
+                    "Premium подписка включает доступ к новейшей модели FloraGPT 2.0 для точных и детальных ответов."
+                ],
+                adminStats: {
+                    totalUsers: 0,
+                    activeUsersToday: 0,
+                    premiumUsers: 0,
+                    adsEnabled: true,
+                    allUsers: {},
+                    premiumHistory: []
+                },
+                userSessionId: Math.random().toString(36).substr(2, 9),
+                currentAdText: null
+            };
+
+            function onTelegramAuth(user) {
+                let message = `Авторизация через Telegram:\n`;
+                message += `ID: ${user.id}\n`;
+                message += `Имя: ${user.first_name}\n`;
+                if (user.last_name) message += `Фамилия: ${user.last_name}\n`;
+                if (user.username) message += `Username: @${user.username}\n`;
+                alert(message);
+            }
+
+            const loadFromStorage = (key, defaultValue) => {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch {
+                    return defaultValue;
+                }
+            };
+
+            const saveToStorage = (key, data) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        Object.keys(state.chats).forEach(id => {
+                            if (state.chats[id].messages && state.chats[id].messages.length > 100) {
+                                state.chats[id].messages = state.chats[id].messages.slice(-100);
+                            }
+                        });
+                        localStorage.setItem(key, JSON.stringify(data));
+                    }
+                }
+            };
+
+            const escapeHtml = (text) => {
+                if (typeof text !== 'string') return text;
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+
+            const sanitizeInput = (input) => {
+                if (typeof input !== 'string') return '';
+                const maxLength = state.userSettings.isPremium ? 4000 : 2000;
+                const sanitized = input.slice(0, maxLength).replace(/[<>]/g, '').trim();
+                return sanitized.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
+            };
+
+            const validateMessage = (message) => {
+                if (!message || typeof message !== 'string') return false;
+                const maxLength = state.userSettings.isPremium ? 4000 : 2000;
+                if (message.length > maxLength) return false;
+                return message.trim().length > 0;
+            };
+
+            const texts = {
+                ru: {
+                    welcomeTitle: "NeuroFlora",
+                    welcomeSubtitle: "Ваш AI-помощник по садоводству. Задавайте вопросы о растениях, уходе за ними, болезнях и удобрениях.",
+                    placeholder: "Задайте вопрос о растениях...",
+                    typing: "Печатает...",
+                    rateHelpful: "Полезно",
+                    rateNotHelpful: "Не полезно",
+                    copy: "Копировать",
+                    delete: "Удалить",
+                    regenerate: "Сгенерировать заново",
+                    noHistory: "История пуста",
+                    totalQuestions: "Всего вопросов",
+                    helpfulAnswers: "Полезных ответов",
+                    language: "Язык",
+                    newChat: "Новый чат",
+                    clearChat: "Очистить чат",
+                    settings: "Настройки",
+                    online: "Онлайн",
+                    aiDisclaimer: "Ответы сгенерированы искусственным интеллектом и могут содержать ошибки. Проверяйте важную информацию.",
+                    languageChanged: "Язык изменен",
+                    chatCleared: "Чат очищен",
+                    confirmClear: "Вы уверены, что хотите очистить чат? Все сообщения будут удалены.",
+                    confirmDeleteChat: "Удалить этот чат? Это действие нельзя отменить.",
+                    sendError: "Извините, произошла ошибка. Пожалуйста, попробуйте позже.",
+                    copySuccess: "Текст скопирован",
+                    exampleQuestions: [
+                        "Как ухаживать за орхидеей?",
+                        "Почему желтеют листья у фикуса?",
+                        "Какие удобрения подходят для роз?",
+                        "Как часто поливать кактусы?"
+                    ],
+                    chat: "Чат",
+                    history: "История чатов",
+                    stats: "Статистика",
+                    interfaceLanguage: "Язык интерфейса",
+                    premium: "Premium",
+                    account: "Аккаунт",
+                    subscriptionStatus: "Статус подписки",
+                    free: "Free",
+                    premiumStatus: "Premium",
+                    upgradeToPremium: "Перейдите на Premium!",
+                    upgradeText: "Получите доступ к расширенным функциям, ускоренным ответам и общайтесь без рекламы",
+                    learnMore: "Узнать больше",
+                    premiumFeatures: "Расширенные возможности",
+                    fastResponses: "Ускоренные ответы",
+                    premiumFeature1Desc: "Приоритетная обработка запросов",
+                    floraGPT: "FloraGPT 2.0",
+                    premiumFeature2Desc: "Улучшенная модель для точных ответов",
+                    noAds: "Без рекламы",
+                    premiumFeature3Desc: "Чистый интерфейс без отвлекающей рекламы",
+                    extendedLimit: "Расширенный лимит",
+                    premiumFeature4Desc: "4000 символов вместо 2000",
+                    extendedHistory: "Расширенная история",
+                    premiumFeature5Desc: "Храните больше чатов",
+                    monthly: "Ежемесячная",
+                    yearly: "Годовая",
+                    buyPremium: "Купить Premium",
+                    popular: "ПОПУЛЯРНЫЙ",
+                    perMonth: "в месяц",
+                    perYear: "в год",
+                    purchaseSuccess: "Premium активирован!",
+                    purchaseError: "Ошибка при покупке. Попробуйте позже.",
+                    premiumModel: "FloraGPT 2.0",
+                    standardModel: "FloraGPT FREE",
+                    premiumFeatureBadge: "PREMIUM",
+                    advertising: "Реклама",
+                    purchaseUnavailable: "Функция временно недоступна",
+                    adminPanel: "Админ-панель",
+                    admin: "Админ",
+                    adminStats: "Статистика",
+                    adminAds: "Реклама",
+                    adminUsers: "Пользователи",
+                    adminPremium: "Premium",
+                    adminTotalUsers: "Всего пользователей",
+                    adminActiveUsers: "Активных сегодня",
+                    adminPremiumUsers: "Premium",
+                    adminAdsStats: "Статистика рекламы",
+                    adminAdsImpressions: "Показов",
+                    adminAdsClicks: "Кликов",
+                    adminAdsCTR: "CTR",
+                    adminAdsManagement: "Управление рекламой",
+                    adminAdsStatus: "Статус рекламы",
+                    adminAdsStatusDesc: "Включить/выключить рекламу для всех пользователей",
+                    adminAdsToggle: "Включено",
+                    adminAdTitle: "Заголовок рекламы",
+                    adminAdText: "Текст рекламы",
+                    adminAdImage: "URL изображения",
+                    adminAdLink: "URL ссылки",
+                    adminAdCompany: "Компания",
+                    adminAdPosition: "Позиция",
+                    adminAdSave: "Сохранить",
+                    adminAdsList: "Список рекламы",
+                    adminAdColTitle: "Заголовок",
+                    adminAdColCompany: "Компания",
+                    adminAdColPosition: "Позиция",
+                    adminAdColImpressions: "Показы",
+                    adminAdColClicks: "Клики",
+                    adminAdColActions: "Действия",
+                    adminEdit: "Изменить",
+                    adminDelete: "Удалить",
+                    adminUsersManagement: "Управление пользователями",
+                    adminUserSearch: "Поиск по ID или имени",
+                    adminFilterAll: "Все",
+                    adminFilterFree: "Free",
+                    adminFilterPremium: "Premium",
+                    adminSearch: "Найти",
+                    adminUserColId: "ID",
+                    adminUserColName: "Имя",
+                    adminUserColStatus: "Статус",
+                    adminUserColQuestions: "Вопросы",
+                    adminUserColActions: "Действия",
+                    adminSetPremium: "Сделать Premium",
+                    adminRemovePremium: "Убрать Premium",
+                    adminPremiumManagement: "Управление Premium",
+                    adminPremiumUserId: "ID пользователя",
+                    adminPlanFree: "Free",
+                    adminPlanMonthly: "Ежемесячный",
+                    adminPlanYearly: "Годовой",
+                    adminPremiumDays: "Дней (0 = навсегда)",
+                    adminApply: "Применить",
+                    adminPremiumHistory: "История подписок",
+                    adminPremiumColUser: "Пользователь",
+                    adminPremiumColPlan: "План",
+                    adminPremiumColDate: "Дата",
+                    adminPremiumColExpires: "Истекает",
+                    adminPanelTitle: "Панель администратора",
+                    sidebarAdTitle: "Реклама",
+                    sidebarAdText: "Поддержите развитие проекта",
+                    sidebarAdCompany: "Компания",
+                    modelName: "FloraGPT FREE",
+                    adminAdColIndex: "#",
+                    adminAdColText: "Текст",
+                    adminAdsTotalImpressions: "Всего показов",
+                    adminAdsTotalClicks: "Всего кликов"
+                },
+                en: {
+                    welcomeTitle: "NeuroFlora",
+                    welcomeSubtitle: "Your AI gardening assistant. Ask questions about plants, care, diseases and fertilizers.",
+                    placeholder: "Ask a question about plants...",
+                    typing: "Typing...",
+                    rateHelpful: "Helpful",
+                    rateNotHelpful: "Not helpful",
+                    copy: "Copy",
+                    delete: "Delete",
+                    regenerate: "Regenerate",
+                    noHistory: "No history",
+                    totalQuestions: "Total questions",
+                    helpfulAnswers: "Helpful answers",
+                    language: "Language",
+                    newChat: "New chat",
+                    clearChat: "Clear chat",
+                    settings: "Settings",
+                    online: "Online",
+                    aiDisclaimer: "Responses are generated by AI and may contain errors. Verify important information.",
+                    languageChanged: "Language changed",
+                    chatCleared: "Chat cleared",
+                    confirmClear: "Are you sure you want to clear the chat? All messages will be deleted.",
+                    confirmDeleteChat: "Delete this chat? This action cannot be undone.",
+                    sendError: "Sorry, an error occurred. Please try again later.",
+                    copySuccess: "Text copied",
+                    exampleQuestions: [
+                        "How to care for an orchid?",
+                        "Why do ficus leaves turn yellow?",
+                        "What fertilizers are suitable for roses?",
+                        "How often to water cacti?"
+                    ],
+                    chat: "Chat",
+                    history: "Chat history",
+                    stats: "Statistics",
+                    interfaceLanguage: "Interface language",
+                    premium: "Premium",
+                    account: "Account",
+                    subscriptionStatus: "Subscription status",
+                    free: "Free",
+                    premiumStatus: "Premium",
+                    upgradeToPremium: "Upgrade to Premium!",
+                    upgradeText: "Get access to advanced features, faster responses and chat without ads",
+                    learnMore: "Learn more",
+                    premiumFeatures: "Advanced features",
+                    fastResponses: "Fast responses",
+                    premiumFeature1Desc: "Priority request processing",
+                    floraGPT: "FloraGPT 2.0",
+                    premiumFeature2Desc: "Improved model for accurate answers",
+                    noAds: "No ads",
+                    premiumFeature3Desc: "Clean interface without distracting ads",
+                    extendedLimit: "Extended limit",
+                    premiumFeature4Desc: "4000 characters instead of 2000",
+                    extendedHistory: "Extended history",
+                    premiumFeature5Desc: "Store more chats",
+                    monthly: "Monthly",
+                    yearly: "Yearly",
+                    buyPremium: "Buy Premium",
+                    popular: "POPULAR",
+                    perMonth: "per month",
+                    perYear: "per year",
+                    purchaseSuccess: "Premium activated!",
+                    purchaseError: "Purchase error. Try again later.",
+                    premiumModel: "FloraGPT 2.0",
+                    standardModel: "FloraGPT FREE",
+                    premiumFeatureBadge: "PREMIUM",
+                    advertising: "Advertising",
+                    purchaseUnavailable: "Function temporarily unavailable",
+                    adminPanel: "Admin Panel",
+                    admin: "Admin",
+                    adminStats: "Statistics",
+                    adminAds: "Ads",
+                    adminUsers: "Users",
+                    adminPremium: "Premium",
+                    adminTotalUsers: "Total Users",
+                    adminActiveUsers: "Active Today",
+                    adminPremiumUsers: "Premium",
+                    adminAdsStats: "Ad Statistics",
+                    adminAdsImpressions: "Impressions",
+                    adminAdsClicks: "Clicks",
+                    adminAdsCTR: "CTR",
+                    adminAdsManagement: "Ad Management",
+                    adminAdsStatus: "Ad Status",
+                    adminAdsStatusDesc: "Enable/disable ads for all users",
+                    adminAdsToggle: "Enabled",
+                    adminAdTitle: "Ad Title",
+                    adminAdText: "Ad Text",
+                    adminAdImage: "Image URL",
+                    adminAdLink: "Link URL",
+                    adminAdCompany: "Company",
+                    adminAdPosition: "Position",
+                    adminAdSave: "Save",
+                    adminAdsList: "Ads List",
+                    adminAdColTitle: "Title",
+                    adminAdColCompany: "Company",
+                    adminAdColPosition: "Position",
+                    adminAdColImpressions: "Impressions",
+                    adminAdColClicks: "Clicks",
+                    adminAdColActions: "Actions",
+                    adminEdit: "Edit",
+                    adminDelete: "Delete",
+                    adminUsersManagement: "User Management",
+                    adminUserSearch: "Search by ID or name",
+                    adminFilterAll: "All",
+                    adminFilterFree: "Free",
+                    adminFilterPremium: "Premium",
+                    adminSearch: "Search",
+                    adminUserColId: "ID",
+                    adminUserColName: "Name",
+                    adminUserColStatus: "Status",
+                    adminUserColQuestions: "Questions",
+                    adminUserColActions: "Actions",
+                    adminSetPremium: "Make Premium",
+                    adminRemovePremium: "Remove Premium",
+                    adminPremiumManagement: "Premium Management",
+                    adminPremiumUserId: "User ID",
+                    adminPlanFree: "Free",
+                    adminPlanMonthly: "Monthly",
+                    adminPlanYearly: "Yearly",
+                    adminPremiumDays: "Days (0 = forever)",
+                    adminApply: "Apply",
+                    adminPremiumHistory: "Subscription History",
+                    adminPremiumColUser: "User",
+                    adminPremiumColPlan: "Plan",
+                    adminPremiumColDate: "Date",
+                    adminPremiumColExpires: "Expires",
+                    adminPanelTitle: "Admin Panel",
+                    sidebarAdTitle: "Advertisement",
+                    sidebarAdText: "Support project development",
+                    sidebarAdCompany: "Company",
+                    modelName: "FloraGPT FREE",
+                    adminAdColIndex: "#",
+                    adminAdColText: "Text",
+                    adminAdsTotalImpressions: "Total Impressions",
+                    adminAdsTotalClicks: "Total Clicks"
+                }
+            };
+
+            const DOM = {
+                sidebar: document.getElementById('sidebar'),
+                messageInput: document.getElementById('message-input'),
+                sendButton: document.getElementById('send-button'),
+                messagesContainer: document.getElementById('messages-container'),
+                welcomeMessage: document.getElementById('welcome-message'),
+                historyList: document.getElementById('history-list'),
+                settingsModal: document.getElementById('settings-modal'),
+                adminModal: document.getElementById('admin-modal'),
+                userAvatar: document.getElementById('user-avatar'),
+                userName: document.getElementById('user-name'),
+                premiumTag: document.getElementById('premium-tag'),
+                adminTag: document.getElementById('admin-tag'),
+                sidebarToggle: document.getElementById('sidebar-toggle'),
+                menuToggle: document.getElementById('menu-toggle'),
+                newChatBtn: document.getElementById('new-chat-btn'),
+                clearChatBtn: document.getElementById('clear-chat'),
+                themeToggle: document.getElementById('theme-toggle'),
+                settingsBtn: document.getElementById('settings-btn'),
+                adminBtn: document.getElementById('admin-btn'),
+                modalClose: document.getElementById('modal-close'),
+                adminModalClose: document.getElementById('admin-modal-close'),
+                charCount: document.querySelector('.char-count'),
+                aiDisclaimer: document.getElementById('ai-disclaimer'),
+                currentChatTitle: document.getElementById('current-chat-title'),
+                mobileOverlay: document.getElementById('mobile-overlay'),
+                chatContainer: document.getElementById('chat-container'),
+                accountStatus: document.getElementById('account-status'),
+                sidebarAd: document.getElementById('sidebar-ad'),
+                sidebarAdText: document.getElementById('sidebar-ad-text'),
+                modelName: document.getElementById('model-name'),
+                adminTabs: document.querySelectorAll('.admin-tab'),
+                adminTabContents: document.querySelectorAll('.admin-tab-content'),
+                adminPremiumUserId: document.getElementById('admin-premium-user-id'),
+                adminPremiumPlan: document.getElementById('admin-premium-plan'),
+                adminPremiumDays: document.getElementById('admin-premium-days'),
+                adminPremiumApply: document.getElementById('admin-premium-apply'),
+                adminAdsList: document.getElementById('admin-ads-list'),
+                adminAdsTotalImpressions: document.getElementById('admin-ads-total-impressions'),
+                adminAdsTotalClicks: document.getElementById('admin-ads-total-clicks'),
+                adminAdsCTR: document.getElementById('admin-ads-ctr')
+            };
+
+            const API = {
+                async generateAIResponse(question) {
+                    const controller = new AbortController();
+                    const timeout = state.userSettings.isPremium ? 15000 : 30000;
+                    setTimeout(() => controller.abort(), timeout);
+
+                    try {
+                        const headers = {
+                            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                            "Content-Type": "application/json",
+                            "HTTP-Referer": window.location.origin,
+                            "X-Title": "NeuroFlora"
+                        };
+
+                        const languagePrompts = {
+                            ru: "Отвечай на русском языке простым текстом без форматирования.",
+                            en: "Respond in English with plain text only, no formatting."
+                        };
+
+                        const model = "openai/gpt-oss-120b:free";
+                        const t = texts[state.userSettings.language];
+                        
+                        const premiumPromptAddition = state.userSettings.isPremium ? 
+                            "Давай максимально развернутые и профессиональные ответы. Используй научные термины, но объясняй их простым языком. Учитывай современные методы садоводства." : 
+                            "Будь краток, но информативен. Давай практические советы.";
+
+                        const prompt = `Ты — опытный садовод и ботаник. Отвечай на вопросы о растениях четко и структурированно.
+${languagePrompts[state.userSettings.language] || languagePrompts.ru}
+
+Требования:
+1. Отвечай только на вопросы о садоводстве и ботанике
+2. Будь максимально точным и информативным
+3. Не используй форматирование (жирный, курсив, списки)
+4. Используй только обычный текст
+5. Ограничь ответ ${state.userSettings.isPremium ? '800' : '500'} словами
+6. Пиши простым, понятным языком
+7. Не используй спецсимволы для выделения текста
+8. ${premiumPromptAddition}
+
+Вопрос: ${sanitizeInput(question)}`;
+
+                        const data = {
+                            model: model,
+                            messages: [
+                                {
+                                    role: "system",
+                                    content: `Ты опытный садовод и ботаник. Отвечай профессионально, но доступно. ${state.userSettings.isPremium ? 'Давай более подробные ответы с научными терминами.' : 'Будь краток и практичен.'} Никогда не используй форматирование (жирный, курсив, списки).`
+                                },
+                                {
+                                    role: "user",
+                                    content: prompt
+                                }
+                            ],
+                            max_tokens: state.userSettings.isPremium ? 2000 : 1000,
+                            temperature: 0.7
+                        };
+
+                        const response = await fetch(API_URL, {
+                            method: "POST",
+                            headers,
+                            body: JSON.stringify(data),
+                            signal: controller.signal
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('API_ERROR');
+                        }
+
+                        const result = await response.json();
+                        const content = result.choices[0].message.content.trim();
+                        
+                        const cleanedContent = content.replace(/\*\*(.*?)\*\*/g, '$1')
+                            .replace(/\*(.*?)\*/g, '$1')
+                            .replace(/#{1,6}\s?/g, '')
+                            .replace(/`{1,3}/g, '')
+                            .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+                            .replace(/\n{3,}/g, '\n\n');
+                        
+                        const maxLength = state.userSettings.isPremium ? 4000 : 2500;
+                        if (cleanedContent.length > maxLength) {
+                            return cleanedContent.substring(0, maxLength);
+                        }
+                        
+                        return sanitizeInput(cleanedContent);
+                    } catch (error) {
+                        console.error('API Request Error:', error);
+                        throw new Error('API_ERROR');
+                    }
+                }
+            };
+
+            const Utils = {
+                formatTime: (dateString) => {
+                    const date = new Date(dateString);
+                    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                },
+
+                autoResizeTextarea: (textarea) => {
+                    textarea.style.height = 'auto';
+                    const maxHeight = 120;
+                    const scrollHeight = textarea.scrollHeight;
+                    textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+                },
+
+                isMobile: () => window.innerWidth <= 768,
+
+                scrollToBottom: () => {
+                    requestAnimationFrame(() => {
+                        DOM.chatContainer.scrollTop = DOM.chatContainer.scrollHeight;
+                    });
+                },
+
+                trackAdImpression: (adIndex) => {
+                    if (!state.userSettings.adStats.impressions[adIndex]) {
+                        state.userSettings.adStats.impressions[adIndex] = 0;
+                    }
+                    state.userSettings.adStats.impressions[adIndex]++;
+                    state.userSettings.adStats.totalImpressions++;
+                    
+                    if (!state.userSettings.adStats.uniqueUsers.has(state.userSessionId)) {
+                        state.userSettings.adStats.uniqueUsers.add(state.userSessionId);
+                    }
+                    
+                    saveToStorage('neuroflora_ad_stats', {
+                        ...state.userSettings.adStats,
+                        uniqueUsers: Array.from(state.userSettings.adStats.uniqueUsers)
+                    });
+                    
+                    if (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user && Telegram.initDataUnsafe.user.id === ADMIN_ID) {
+                        App.updateAdminStats();
+                    }
+                },
+
+                trackAdClick: (adIndex) => {
+                    if (!state.userSettings.adStats.clicks[adIndex]) {
+                        state.userSettings.adStats.clicks[adIndex] = 0;
+                    }
+                    state.userSettings.adStats.clicks[adIndex]++;
+                    state.userSettings.adStats.totalClicks++;
+                    
+                    saveToStorage('neuroflora_ad_stats', {
+                        ...state.userSettings.adStats,
+                        uniqueUsers: Array.from(state.userSettings.adStats.uniqueUsers)
+                    });
+                    
+                    if (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user && Telegram.initDataUnsafe.user.id === ADMIN_ID) {
+                        App.updateAdminStats();
+                    }
+                }
+            };
+
+            const App = {
+                init() {
+                    state.chats = loadFromStorage('neuroflora_chats', {
+                        default: {
+                            id: 'default',
+                            title: 'Новый чат',
+                            messages: [],
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        }
+                    });
+                    
+                    const savedSettings = loadFromStorage('neuroflora_settings', null);
+                    if (savedSettings) {
+                        state.userSettings = {
+                            ...state.userSettings,
+                            ...savedSettings,
+                            isPremium: savedSettings.isPremium || false,
+                            adStats: savedSettings.adStats || state.userSettings.adStats
+                        };
+                    }
+                    
+                    const savedStats = loadFromStorage('neuroflora_ad_stats', null);
+                    if (savedStats) {
+                        state.userSettings.adStats = {
+                            ...savedStats,
+                            uniqueUsers: new Set(savedStats.uniqueUsers || [])
+                        };
+                    }
+                    
+                    state.adminStats = loadFromStorage('neuroflora_admin_stats', state.adminStats);
+                    
+                    state.messageRatings = loadFromStorage('neuroflora_ratings', {});
+                    
+                    this.setupUserProfile();
+                    this.loadCurrentChat();
+                    this.setupEventListeners();
+                    this.updateInterfaceLanguage();
+                    this.updateStatistics();
+                    this.loadHistoryList();
+                    this.updateSidebarState();
+                    this.applyTheme();
+                    this.updateCharCount();
+                    this.handleMobileView();
+                    this.updatePremiumUI();
+                    this.updateSidebarAd();
+                    
+                    if (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user && Telegram.initDataUnsafe.user.id === ADMIN_ID) {
+                        DOM.adminBtn.style.display = 'flex';
+                        DOM.adminTag.style.display = 'inline-flex';
+                        this.updateAdminStats();
+                    }
+                    
+                    if (!Telegram.initData) {
+                        document.getElementById('telegram-login-container').style.display = 'block';
+                    }
+                },
+
+                setupUserProfile() {
+                    if (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user) {
+                        const user = Telegram.initDataUnsafe.user;
+                        const userName = user.first_name || 'Пользователь';
+                        DOM.userName.textContent = escapeHtml(userName);
+                        
+                        if (user.photo_url) {
+                            DOM.userAvatar.style.backgroundImage = `url('${escapeHtml(user.photo_url)}')`;
+                            DOM.userAvatar.style.backgroundSize = 'cover';
+                            DOM.userAvatar.textContent = '';
+                        } else {
+                            DOM.userAvatar.textContent = userName.charAt(0).toUpperCase();
+                        }
+                        
+                        if (user.id === ADMIN_ID) {
+                            const adminBadge = document.createElement('div');
+                            adminBadge.className = 'admin-badge';
+                            adminBadge.innerHTML = '<i class="fas fa-shield-alt"></i>';
+                            DOM.userAvatar.appendChild(adminBadge);
+                        }
+                    }
+                },
+
+                loadCurrentChat() {
+                    const chat = state.chats[state.currentChatId];
+                    DOM.messagesContainer.innerHTML = '';
+                    
+                    if (!chat || !chat.messages || chat.messages.length === 0) {
+                        DOM.welcomeMessage.style.display = 'flex';
+                        DOM.welcomeMessage.classList.add('show');
+                    } else {
+                        DOM.welcomeMessage.style.display = 'none';
+                        DOM.welcomeMessage.classList.remove('show');
+                        chat.messages.forEach(msg => this.renderMessage(msg));
+                        Utils.scrollToBottom();
+                    }
+                    
+                    this.updateChatHeader();
+                },
+
+                renderMessage(msg) {
+                    if (msg.id === 'welcome') return;
+                    
+                    const t = texts[state.userSettings.language];
+                    const time = Utils.formatTime(msg.timestamp);
+                    const isUserMessage = msg.role === 'user';
+                    const author = isUserMessage 
+                        ? (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.first_name || 'Вы') 
+                        : 'NeuroFlora';
+                    
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${isUserMessage ? 'user-message' : 'bot-message'}`;
+                    messageDiv.id = `message-${msg.id}`;
+                    
+                    const messageContainer = document.createElement('div');
+                    messageContainer.className = 'message-container';
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = `message-avatar ${isUserMessage ? 'user-avatar-sm' : 'bot-avatar-sm'}`;
+                    
+                    if (isUserMessage && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.photo_url) {
+                        avatar.style.backgroundImage = `url('${escapeHtml(Telegram.initDataUnsafe.user.photo_url)}')`;
+                        avatar.style.backgroundSize = 'cover';
+                        avatar.textContent = '';
+                    } else if (isUserMessage) {
+                        const userName = (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.first_name) || 'Вы';
+                        avatar.textContent = userName.charAt(0).toUpperCase();
+                    }
+                    
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.className = 'message-content-wrapper';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'message-header';
+                    
+                    const authorEl = document.createElement('div');
+                    authorEl.className = 'message-author';
+                    authorEl.textContent = author;
+                    
+                    const timeEl = document.createElement('div');
+                    timeEl.className = 'message-time';
+                    timeEl.textContent = time;
+                    
+                    header.appendChild(authorEl);
+                    header.appendChild(timeEl);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'message-content';
+                    content.textContent = msg.content.trim();
+                    
+                    contentWrapper.appendChild(header);
+                    contentWrapper.appendChild(content);
+                    
+                    if (!isUserMessage) {
+                        const rating = state.messageRatings[msg.id];
+                        const chat = state.chats[state.currentChatId];
+                        const isLastAIMessage = chat.messages[chat.messages.length - 1]?.id === msg.id;
+                        
+                        const actions = document.createElement('div');
+                        actions.className = 'message-actions';
+                        
+                        const likeBtn = document.createElement('button');
+                        likeBtn.className = `action-btn ${rating === 'like' ? 'active' : ''}`;
+                        likeBtn.innerHTML = DOMPurify.sanitize(`<i class="fas fa-thumbs-up"></i> ${t.rateHelpful}`);
+                        likeBtn.onclick = () => this.rateMessage(msg.id, 'like');
+                        
+                        const dislikeBtn = document.createElement('button');
+                        dislikeBtn.className = `action-btn ${rating === 'dislike' ? 'active' : ''}`;
+                        dislikeBtn.innerHTML = DOMPurify.sanitize(`<i class="fas fa-thumbs-down"></i> ${t.rateNotHelpful}`);
+                        dislikeBtn.onclick = () => this.rateMessage(msg.id, 'dislike');
+                        
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'action-btn';
+                        copyBtn.innerHTML = DOMPurify.sanitize(`<i class="fas fa-copy"></i> ${t.copy}`);
+                        copyBtn.onclick = () => this.copyMessage(msg.id);
+                        
+                        actions.appendChild(likeBtn);
+                        actions.appendChild(dislikeBtn);
+                        actions.appendChild(copyBtn);
+                        
+                        if (isLastAIMessage) {
+                            const regenerateBtn = document.createElement('button');
+                            regenerateBtn.className = 'action-btn';
+                            regenerateBtn.innerHTML = DOMPurify.sanitize(`<i class="fas fa-redo"></i> ${t.regenerate}`);
+                            regenerateBtn.onclick = () => this.regenerateResponse(msg.id);
+                            actions.appendChild(regenerateBtn);
+                        }
+                        
+                        contentWrapper.appendChild(actions);
+                    }
+                    
+                    messageContainer.appendChild(avatar);
+                    messageContainer.appendChild(contentWrapper);
+                    messageDiv.appendChild(messageContainer);
+                    DOM.messagesContainer.appendChild(messageDiv);
+                },
+
+                async sendMessage() {
+                    const input = DOM.messageInput;
+                    const text = sanitizeInput(input.value);
+                    
+                    if (!validateMessage(text)) {
+                        if (Telegram.WebApp && Telegram.WebApp.showAlert) {
+                            Telegram.WebApp.showAlert(`Сообщение слишком длинное (максимум ${state.userSettings.isPremium ? '4000' : '2000'} символов)`);
+                        }
+                        return;
+                    }
+                    
+                    DOM.sendButton.disabled = true;
+                    
+                    const userMessage = {
+                        id: Date.now().toString(),
+                        role: 'user',
+                        content: text,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    this.addMessageToChat(userMessage);
+                    this.renderMessage(userMessage);
+                    
+                    input.value = '';
+                    this.updateCharCount();
+                    Utils.autoResizeTextarea(input);
+                    
+                    DOM.welcomeMessage.style.display = 'none';
+                    DOM.welcomeMessage.classList.remove('show');
+                    
+                    Utils.scrollToBottom();
+                    this.showTypingIndicator();
+                    
+                    if (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user) {
+                        const userId = Telegram.initDataUnsafe.user.id;
+                        if (!state.adminStats.allUsers[userId]) {
+                            state.adminStats.allUsers[userId] = {
+                                id: userId,
+                                name: Telegram.initDataUnsafe.user.first_name || 'Пользователь',
+                                questions: 0,
+                                premiumUntil: null,
+                                lastActive: new Date().toISOString()
+                            };
+                        }
+                        state.adminStats.allUsers[userId].questions = (state.adminStats.allUsers[userId].questions || 0) + 1;
+                        state.adminStats.allUsers[userId].lastActive = new Date().toISOString();
+                        this.saveAdminStats();
+                    }
+                    
+                    try {
+                        const aiResponse = await API.generateAIResponse(text);
+                        this.hideTypingIndicator();
+                        
+                        const aiMessage = {
+                            id: Date.now().toString(),
+                            role: 'assistant',
+                            content: aiResponse,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        this.addMessageToChat(aiMessage);
+                        this.renderMessage(aiMessage);
+                        
+                        this.updateChatTitle();
+                        this.loadHistoryList();
+                        this.updateStatistics();
+                        
+                        Utils.scrollToBottom();
+                        if (Telegram.HapticFeedback) {
+                            Telegram.HapticFeedback.notificationOccurred('success');
+                        }
+                    } catch (error) {
+                        this.hideTypingIndicator();
+                        const t = texts[state.userSettings.language];
+                        const errorMessage = {
+                            id: Date.now().toString(),
+                            role: 'assistant',
+                            content: t.sendError,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        this.addMessageToChat(errorMessage);
+                        this.renderMessage(errorMessage);
+                        Utils.scrollToBottom();
+                        if (Telegram.HapticFeedback) {
+                            Telegram.HapticFeedback.notificationOccurred('error');
+                        }
+                    } finally {
+                        DOM.sendButton.disabled = false;
+                    }
+                },
+
+                async regenerateResponse(messageId) {
+                    const chat = state.chats[state.currentChatId];
+                    const messageIndex = chat.messages.findIndex(m => m.id === messageId);
+                    
+                    if (messageIndex === -1 || chat.messages[messageIndex].role !== 'assistant') return;
+                    
+                    const userMessage = chat.messages[messageIndex - 1];
+                    if (!userMessage || userMessage.role !== 'user') return;
+                    
+                    chat.messages.splice(messageIndex, 1);
+                    this.saveChats();
+                    this.loadCurrentChat();
+                    
+                    this.showTypingIndicator();
+                    
+                    try {
+                        const aiResponse = await API.generateAIResponse(userMessage.content);
+                        this.hideTypingIndicator();
+                        
+                        const aiMessage = {
+                            id: Date.now().toString(),
+                            role: 'assistant',
+                            content: aiResponse,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        this.addMessageToChat(aiMessage);
+                        this.renderMessage(aiMessage);
+                        
+                        this.updateStatistics();
+                        Utils.scrollToBottom();
+                        if (Telegram.HapticFeedback) {
+                            Telegram.HapticFeedback.notificationOccurred('success');
+                        }
+                    } catch (error) {
+                        this.hideTypingIndicator();
+                        const t = texts[state.userSettings.language];
+                        const errorMessage = {
+                            id: Date.now().toString(),
+                            role: 'assistant',
+                            content: t.sendError,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        this.addMessageToChat(errorMessage);
+                        this.renderMessage(errorMessage);
+                        Utils.scrollToBottom();
+                        if (Telegram.HapticFeedback) {
+                            Telegram.HapticFeedback.notificationOccurred('error');
+                        }
+                    }
+                },
+
+                addMessageToChat(message) {
+                    const chat = state.chats[state.currentChatId];
+                    if (!chat.messages) chat.messages = [];
+                    message.content = message.content.trim();
+                    chat.messages.push(message);
+                    chat.updatedAt = new Date().toISOString();
+                    this.saveChats();
+                },
+
+                updateChatTitle() {
+                    const chat = state.chats[state.currentChatId];
+                    const lastUserMessage = chat.messages.find(m => m.role === 'user');
+                    if (lastUserMessage && lastUserMessage.content) {
+                        const title = lastUserMessage.content.substring(0, 50) + (lastUserMessage.content.length > 50 ? '...' : '');
+                        const t = texts[state.userSettings.language];
+                        if (chat.title === 'Новый чат' || chat.title === t.newChat) {
+                            chat.title = title;
+                            this.saveChats();
+                            this.updateChatHeader();
+                        }
+                    }
+                },
+
+                updateChatHeader() {
+                    const chat = state.chats[state.currentChatId];
+                    DOM.currentChatTitle.textContent = chat?.title || 'NeuroFlora';
+                },
+
+                showTypingIndicator() {
+                    const t = texts[state.userSettings.language];
+                    const typingDiv = document.createElement('div');
+                    typingDiv.className = 'typing-indicator';
+                    typingDiv.id = 'typing-indicator';
+                    typingDiv.innerHTML = DOMPurify.sanitize(`
+                        <div class="bot-avatar-sm" style="background-image: url('https://i.postimg.cc/SxdqDwpy/Bez-nazvania54-20251214232638.png')"></div>
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div>${t.typing} ${state.userSettings.isPremium ? '⚡' : ''}</div>
+                    `);
+                    DOM.messagesContainer.appendChild(typingDiv);
+                    Utils.scrollToBottom();
+                },
+
+                hideTypingIndicator() {
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) indicator.remove();
+                },
+
+                rateMessage(messageId, rating) {
+                    state.messageRatings[messageId] = rating;
+                    saveToStorage('neuroflora_ratings', state.messageRatings);
+                    this.updateStatistics();
+                },
+
+                copyMessage(messageId) {
+                    const messageDiv = document.getElementById(`message-${messageId}`);
+                    if (messageDiv) {
+                        const text = messageDiv.querySelector('.message-content').textContent;
+                        navigator.clipboard.writeText(text).then(() => {
+                            const t = texts[state.userSettings.language];
+                            if (Telegram.WebApp && Telegram.WebApp.showAlert) {
+                                Telegram.WebApp.showAlert(t.copySuccess);
+                            }
+                        });
+                    }
+                },
+
+                createNewChat() {
+                    const chatId = Date.now().toString();
+                    const t = texts[state.userSettings.language];
+                    const newChat = {
+                        id: chatId,
+                        title: t.newChat,
+                        messages: [],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    state.chats[chatId] = newChat;
+                    state.currentChatId = chatId;
+                    this.saveChats();
+                    
+                    this.loadCurrentChat();
+                    this.loadHistoryList();
+                    
+                    if (Telegram.HapticFeedback) {
+                        Telegram.HapticFeedback.selectionChanged();
+                    }
+                    if (Utils.isMobile()) this.closeSidebar();
+                },
+
+                clearCurrentChat() {
+                    const t = texts[state.userSettings.language];
+                    if (confirm(t.confirmClear)) {
+                        const chat = state.chats[state.currentChatId];
+                        chat.messages = [];
+                        chat.updatedAt = new Date().toISOString();
+                        this.saveChats();
+                        
+                        this.loadCurrentChat();
+                        this.updateStatistics();
+                        if (Telegram.WebApp && Telegram.WebApp.showAlert) {
+                            Telegram.WebApp.showAlert(t.chatCleared);
+                        }
+                    }
+                },
+
+                deleteChat(chatId, event) {
+                    event?.stopPropagation();
+                    const t = texts[state.userSettings.language];
+                    if (!confirm(t.confirmDeleteChat)) return;
+                    
+                    if (chatId === state.currentChatId) {
+                        state.currentChatId = 'default';
+                        if (!state.chats.default) {
+                            const t = texts[state.userSettings.language];
+                            state.chats.default = {
+                                id: 'default',
+                                title: t.newChat,
+                                messages: [],
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString()
+                            };
+                        }
+                        this.loadCurrentChat();
+                    }
+                    
+                    delete state.chats[chatId];
+                    this.saveChats();
+                    this.loadHistoryList();
+                    this.updateStatistics();
+                },
+
+                loadHistoryList() {
+                    const container = DOM.historyList;
+                    const chatIds = Object.keys(state.chats);
+                    
+                    if (chatIds.length === 0 || (chatIds.length === 1 && state.chats.default && (!state.chats.default.messages || state.chats.default.messages.length === 0))) {
+                        const t = texts[state.userSettings.language];
+                        container.innerHTML = DOMPurify.sanitize(`
+                            <div style="padding: 40px 20px; text-align: center; color: var(--text-tertiary);">
+                                <i class="fas fa-history" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+                                <div>${t.noHistory}</div>
+                            </div>
+                        `);
+                        return;
+                    }
+                    
+                    const sortedChats = chatIds
+                        .map(id => state.chats[id])
+                        .filter(chat => chat && chat.messages && chat.messages.length > 0)
+                        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                    
+                    container.innerHTML = '';
+                    
+                    sortedChats.forEach(chat => {
+                        if (!chat) return;
+                        
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        let preview;
+                        if (lastMessage) {
+                            const cleanContent = lastMessage.content.trim();
+                            preview = cleanContent.substring(0, 50) + (cleanContent.length > 50 ? '...' : '');
+                        } else {
+                            const t = texts[state.userSettings.language];
+                            preview = t.newChat;
+                        }
+                        
+                        const time = new Date(chat.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const historyItem = document.createElement('div');
+                        historyItem.className = `history-item ${chat.id === state.currentChatId ? 'active' : ''}`;
+                        
+                        const historyPreview = document.createElement('div');
+                        historyPreview.className = 'history-preview';
+                        
+                        const historyText = document.createElement('div');
+                        historyText.className = 'history-text';
+                        historyText.textContent = preview;
+                        
+                        const historyTime = document.createElement('div');
+                        historyTime.className = 'history-time';
+                        historyTime.textContent = time;
+                        
+                        historyPreview.appendChild(historyText);
+                        historyPreview.appendChild(historyTime);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'history-delete-btn';
+                        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                        deleteBtn.onclick = (e) => this.deleteChat(chat.id, e);
+                        
+                        historyItem.appendChild(historyPreview);
+                        historyItem.appendChild(deleteBtn);
+                        historyItem.onclick = () => this.switchChat(chat.id);
+                        
+                        container.appendChild(historyItem);
+                    });
+                },
+
+                switchChat(chatId) {
+                    state.currentChatId = chatId;
+                    this.loadCurrentChat();
+                    this.loadHistoryList();
+                    if (Utils.isMobile()) this.closeSidebar();
+                },
+
+                updateInterfaceLanguage() {
+                    const lang = state.userSettings.language;
+                    const t = texts[lang];
+                    
+                    DOM.messageInput.placeholder = t.placeholder;
+                    DOM.messageInput.maxLength = state.userSettings.isPremium ? 4000 : 2000;
+                    
+                    const elements = {
+                        'new-chat-text': t.newChat,
+                        'chat-tab-text': t.chat,
+                        'settings-tab-text': t.settings,
+                        'admin-tab-text': t.adminPanel,
+                        'history-title-text': t.history,
+                        'user-status-text': t.online,
+                        'welcome-title': t.welcomeTitle,
+                        'welcome-subtitle': t.welcomeSubtitle,
+                        'ai-disclaimer': t.aiDisclaimer,
+                        'modal-title-text': t.settings,
+                        'account-title-text': t.account,
+                        'stats-title-text': t.stats,
+                        'total-questions-text': t.totalQuestions,
+                        'helpful-answers-text': t.helpfulAnswers,
+                        'language-text': t.language,
+                        'interface-language-text': t.interfaceLanguage,
+                        'admin-modal-title-text': t.adminPanel,
+                        'admin-panel-title': t.adminPanelTitle,
+                        'admin-tab-premium': t.adminPremium,
+                        'admin-tab-ads': t.adminAds,
+                        'admin-premium-title': t.adminPremiumManagement,
+                        'admin-premium-user-id': t.adminPremiumUserId,
+                        'admin-plan-free': t.adminPlanFree,
+                        'admin-plan-monthly': t.adminPlanMonthly,
+                        'admin-plan-yearly': t.adminPlanYearly,
+                        'admin-premium-days': t.adminPremiumDays,
+                        'admin-premium-apply-text': t.adminApply,
+                        'admin-ads-stats-title': t.adminAdsStats,
+                        'admin-ads-total-impressions-label': t.adminAdsTotalImpressions,
+                        'admin-ads-total-clicks-label': t.adminAdsTotalClicks,
+                        'admin-ads-ctr-label': t.adminAdsCTR,
+                        'admin-ads-list-title': t.adminAdsList,
+                        'admin-ad-col-index': t.adminAdColIndex,
+                        'admin-ad-col-text': t.adminAdColText,
+                        'admin-ad-col-impressions': t.adminAdColImpressions,
+                        'admin-ad-col-clicks': t.adminAdColClicks
+                    };
+                    
+                    Object.keys(elements).forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) element.textContent = elements[id];
+                    });
+                    
+                    DOM.modelName.textContent = state.userSettings.isPremium ? t.premiumModel : t.standardModel;
+                    
+                    document.querySelectorAll('.example-card').forEach((card, index) => {
+                        const textDiv = card.querySelector('.example-text');
+                        if (textDiv && t.exampleQuestions[index]) {
+                            textDiv.textContent = t.exampleQuestions[index];
+                            card.dataset.question = t.exampleQuestions[index];
+                        }
+                    });
+                    
+                    document.querySelectorAll('.language-option').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.lang === lang);
+                    });
+                    
+                    this.updateCharCount();
+                },
+
+                updateStatistics() {
+                    let totalQuestions = 0;
+                    Object.values(state.chats).forEach(chat => {
+                        if (chat && chat.messages) {
+                            totalQuestions += chat.messages.filter(m => m.role === 'user').length;
+                        }
+                    });
+                    
+                    const ratedMessages = Object.values(state.messageRatings);
+                    const helpfulCount = ratedMessages.filter(r => r === 'like').length;
+                    const helpfulPercentage = ratedMessages.length > 0 ? 
+                        Math.round((helpfulCount / ratedMessages.length) * 100) : 0;
+                    
+                    document.getElementById('stat-total').textContent = totalQuestions;
+                    document.getElementById('stat-helpful').textContent = `${helpfulPercentage}%`;
+                    document.getElementById('stat-language').textContent = state.userSettings.language.toUpperCase();
+                    
+                    const t = texts[state.userSettings.language];
+                    DOM.accountStatus.textContent = state.userSettings.isPremium ? t.premiumStatus : t.free;
+                    DOM.accountStatus.style.color = state.userSettings.isPremium ? 'var(--premium)' : 'var(--text-secondary)';
+                },
+
+                updateAdminStats() {
+                    if (!Telegram.initDataUnsafe || !Telegram.initDataUnsafe.user || Telegram.initDataUnsafe.user.id !== ADMIN_ID) {
+                        return;
+                    }
+                    
+                    const t = texts[state.userSettings.language];
+                    
+                    state.adminStats.totalUsers = Object.keys(state.adminStats.allUsers).length;
+                    
+                    const today = new Date().toDateString();
+                    state.adminStats.activeUsersToday = Object.values(state.adminStats.allUsers).filter(user => {
+                        return user.lastActive && new Date(user.lastActive).toDateString() === today;
+                    }).length;
+                    
+                    state.adminStats.premiumUsers = Object.values(state.adminStats.allUsers).filter(user => {
+                        return user.premiumUntil && new Date(user.premiumUntil) > new Date();
+                    }).length;
+                    
+                    DOM.adminAdsTotalImpressions.textContent = state.userSettings.adStats.totalImpressions;
+                    DOM.adminAdsTotalClicks.textContent = state.userSettings.adStats.totalClicks;
+                    
+                    const ctr = state.userSettings.adStats.totalImpressions > 0 ? 
+                        ((state.userSettings.adStats.totalClicks / state.userSettings.adStats.totalImpressions) * 100).toFixed(1) : '0.0';
+                    DOM.adminAdsCTR.textContent = `${ctr}%`;
+                    
+                    this.updateAdsList();
+                },
+
+                updateAdsList() {
+                    const t = texts[state.userSettings.language];
+                    DOM.adminAdsList.innerHTML = '';
+                    
+                    state.ads.forEach((adText, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = DOMPurify.sanitize(`
+                            <td>${index + 1}</td>
+                            <td>${escapeHtml(adText.substring(0, 100) + (adText.length > 100 ? '...' : ''))}</td>
+                            <td>${state.userSettings.adStats.impressions[index] || 0}</td>
+                            <td>${state.userSettings.adStats.clicks[index] || 0}</td>
+                        `);
+                        DOM.adminAdsList.appendChild(row);
+                    });
+                },
+
+                setUserPremium(userId, isPremium) {
+                    const user = state.adminStats.allUsers[userId];
+                    if (!user) return;
+                    
+                    if (isPremium) {
+                        const until = new Date();
+                        until.setDate(until.getDate() + 30);
+                        user.premiumUntil = until.toISOString();
+                        state.userSettings.isPremium = isPremium;
+                    } else {
+                        user.premiumUntil = null;
+                        state.userSettings.isPremium = false;
+                    }
+                    
+                    if (userId.toString() === (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.id?.toString())) {
+                        this.saveSettings();
+                        this.updatePremiumUI();
+                        this.updateSidebarAd();
+                    }
+                    
+                    this.saveAdminStats();
+                    this.updateAdminStats();
+                },
+
+                toggleTheme() {
+                    const isDark = document.body.classList.toggle('dark-theme');
+                    state.userSettings.theme = isDark ? 'dark' : 'light';
+                    this.saveSettings();
+                    document.getElementById('theme-toggle').querySelector('i').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                },
+
+                toggleSidebar() {
+                    if (Utils.isMobile()) {
+                        const isActive = DOM.sidebar.classList.toggle('active');
+                        DOM.mobileOverlay.classList.toggle('active', isActive);
+                        document.body.style.overflow = isActive ? 'hidden' : '';
+                    } else {
+                        const isHidden = DOM.sidebar.classList.toggle('hidden');
+                        state.userSettings.sidebarHidden = isHidden;
+                        this.saveSettings();
+                        DOM.sidebarToggle.querySelector('i').className = isHidden ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+                    }
+                },
+
+                closeSidebar() {
+                    if (Utils.isMobile()) {
+                        DOM.sidebar.classList.remove('active');
+                        DOM.mobileOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                },
+
+                updateSidebarState() {
+                    if (!Utils.isMobile()) {
+                        if (state.userSettings.sidebarHidden) {
+                            DOM.sidebar.classList.add('hidden');
+                            DOM.sidebarToggle.querySelector('i').className = 'fas fa-chevron-left';
+                        } else {
+                            DOM.sidebar.classList.remove('hidden');
+                            DOM.sidebarToggle.querySelector('i').className = 'fas fa-chevron-right';
+                        }
+                    }
+                },
+
+                applyTheme() {
+                    if (state.userSettings.theme === 'dark') {
+                        document.body.classList.add('dark-theme');
+                        document.getElementById('theme-toggle').querySelector('i').className = 'fas fa-sun';
+                    }
+                },
+
+                handleMobileView() {
+                    if (Utils.isMobile()) {
+                        DOM.sidebar.classList.remove('hidden');
+                        DOM.sidebar.classList.add('active');
+                        setTimeout(() => this.closeSidebar(), 100);
+                    }
+                },
+
+                updateCharCount() {
+                    const maxLength = state.userSettings.isPremium ? 4000 : 2000;
+                    DOM.charCount.textContent = `${DOM.messageInput.value.length}/${maxLength}`;
+                },
+
+                updatePremiumUI() {
+                    const existingPremiumBadge = DOM.userAvatar.querySelector('.premium-badge');
+                    if (existingPremiumBadge) {
+                        existingPremiumBadge.remove();
+                    }
+
+                    if (state.userSettings.isPremium) {
+                        DOM.premiumTag.style.display = 'inline-flex';
+                        DOM.sidebarAd.classList.remove('show');
+                        
+                        if (!(Telegram.initDataUnsafe && Telegram.initDataUnsafe.user && Telegram.initDataUnsafe.user.id === ADMIN_ID)) {
+                            const premiumBadge = document.createElement('div');
+                            premiumBadge.className = 'premium-badge';
+                            premiumBadge.innerHTML = '<i class="fas fa-crown"></i>';
+                            DOM.userAvatar.appendChild(premiumBadge);
+                        }
+                    } else {
+                        DOM.premiumTag.style.display = 'none';
+                    }
+                    DOM.modelName.textContent = state.userSettings.isPremium ? 
+                        texts[state.userSettings.language].premiumModel : 
+                        texts[state.userSettings.language].standardModel;
+                },
+
+                updateSidebarAd() {
+                    const isAdmin = Telegram.initDataUnsafe && Telegram.initDataUnsafe.user && Telegram.initDataUnsafe.user.id === ADMIN_ID;
+                    if (!state.userSettings.isPremium && state.adminStats.adsEnabled && !isAdmin && Array.isArray(state.ads) && state.ads.length > 0) {
+                        const now = Date.now();
+                        const lastShown = state.userSettings.lastAdShown;
+                        
+                        if (!lastShown || (now - lastShown) >= state.userSettings.adFrequency) {
+                            if (state.ads.length > 0) {
+                                const adIndex = state.currentAdIndex % state.ads.length;
+                                const adText = state.ads[adIndex];
+                                
+                                DOM.sidebarAdText.textContent = adText;
+                                state.currentAdText = adText;
+                                
+                                DOM.sidebarAd.classList.add('show');
+                                state.userSettings.lastAdShown = now;
+                                
+                                Utils.trackAdImpression(adIndex);
+                                
+                                state.currentAdIndex = (state.currentAdIndex + 1) % state.ads.length;
+                            } else {
+                                DOM.sidebarAd.classList.remove('show');
+                            }
+                        } else {
+                            if (state.ads.length > 0) {
+                                const adIndex = state.currentAdIndex % state.ads.length;
+                                const adText = state.ads[adIndex];
+                                DOM.sidebarAdText.textContent = adText;
+                                DOM.sidebarAd.classList.add('show');
+                            }
+                        }
+                    } else {
+                        DOM.sidebarAd.classList.remove('show');
+                    }
+                },
+
+                openAdLink() {
+                    if (state.currentAdText && !state.userSettings.isPremium) {
+                        const adIndex = state.ads.indexOf(state.currentAdText);
+                        if (adIndex !== -1) {
+                            Utils.trackAdClick(adIndex);
+                        }
+                    }
+                },
+
+                saveChats() {
+                    saveToStorage('neuroflora_chats', state.chats);
+                },
+
+                saveSettings() {
+                    saveToStorage('neuroflora_settings', state.userSettings);
+                },
+
+                saveAdminStats() {
+                    saveToStorage('neuroflora_admin_stats', state.adminStats);
+                },
+
+                setupEventListeners() {
+                    DOM.sendButton.addEventListener('click', () => this.sendMessage());
+                    DOM.messageInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            this.sendMessage();
+                        }
+                    });
+                    DOM.messageInput.addEventListener('input', () => {
+                        this.updateCharCount();
+                        Utils.autoResizeTextarea(DOM.messageInput);
+                    });
+                    DOM.newChatBtn.addEventListener('click', () => this.createNewChat());
+                    DOM.clearChatBtn.addEventListener('click', () => this.clearCurrentChat());
+                    DOM.themeToggle.addEventListener('click', () => this.toggleTheme());
+                    DOM.menuToggle.addEventListener('click', () => this.toggleSidebar());
+                    DOM.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
+                    DOM.mobileOverlay.addEventListener('click', () => this.closeSidebar());
+                    document.querySelectorAll('.nav-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                            item.classList.add('active');
+                            if (Utils.isMobile()) this.closeSidebar();
+                        });
+                    });
+                    DOM.settingsBtn.addEventListener('click', () => {
+                        DOM.settingsModal.classList.add('active');
+                        this.updateStatistics();
+                        if (Telegram.BackButton) Telegram.BackButton.show();
+                        if (Utils.isMobile()) this.closeSidebar();
+                    });
+                    DOM.adminBtn.addEventListener('click', () => {
+                        DOM.adminModal.classList.add('active');
+                        this.updateAdminStats();
+                        if (Telegram.BackButton) Telegram.BackButton.show();
+                        if (Utils.isMobile()) this.closeSidebar();
+                    });
+                    DOM.sidebarAd.addEventListener('click', () => {
+                        this.openAdLink();
+                    });
+                    if (Telegram.BackButton) {
+                        Telegram.BackButton.onClick(() => {
+                            DOM.settingsModal.classList.remove('active');
+                            DOM.adminModal.classList.remove('active');
+                            Telegram.BackButton.hide();
+                        });
+                    }
+                    DOM.modalClose.addEventListener('click', () => {
+                        DOM.settingsModal.classList.remove('active');
+                        if (Telegram.BackButton) Telegram.BackButton.hide();
+                    });
+                    DOM.adminModalClose.addEventListener('click', () => {
+                        DOM.adminModal.classList.remove('active');
+                        if (Telegram.BackButton) Telegram.BackButton.hide();
+                    });
+                    DOM.settingsModal.addEventListener('click', (e) => {
+                        if (e.target === DOM.settingsModal) {
+                            DOM.settingsModal.classList.remove('active');
+                            if (Telegram.BackButton) Telegram.BackButton.hide();
+                        }
+                    });
+                    DOM.adminModal.addEventListener('click', (e) => {
+                        if (e.target === DOM.adminModal) {
+                            DOM.adminModal.classList.remove('active');
+                            if (Telegram.BackButton) Telegram.BackButton.hide();
+                        }
+                    });
+                    document.querySelectorAll('.language-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const lang = option.dataset.lang;
+                            state.userSettings.language = lang;
+                            this.saveSettings();
+                            this.updateInterfaceLanguage();
+                            this.updateStatistics();
+                            if (Telegram.WebApp && Telegram.WebApp.showAlert) {
+                                Telegram.WebApp.showAlert(texts[lang].languageChanged);
+                            }
+                        });
+                    });
+                    document.querySelectorAll('.example-card').forEach(card => {
+                        card.addEventListener('click', () => {
+                            const question = card.dataset.question;
+                            DOM.messageInput.value = question;
+                            Utils.autoResizeTextarea(DOM.messageInput);
+                            this.updateCharCount();
+                            setTimeout(() => DOM.messageInput.focus(), 100);
+                        });
+                    });
+                    DOM.adminTabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const tabId = tab.dataset.tab;
+                            DOM.adminTabs.forEach(t => t.classList.remove('active'));
+                            tab.classList.add('active');
+                            DOM.adminTabContents.forEach(content => {
+                                content.classList.remove('active');
+                                if (content.id === `admin-${tabId}-tab`) {
+                                    content.classList.add('active');
+                                }
+                            });
+                        });
+                    });
+                    
+                    DOM.adminPremiumApply.addEventListener('click', () => {
+                        const userId = DOM.adminPremiumUserId.value;
+                        const plan = DOM.adminPremiumPlan.value;
+                        const days = parseInt(DOM.adminPremiumDays.value) || 0;
+                        
+                        if (!userId) {
+                            if (Telegram.WebApp && Telegram.WebApp.showAlert) {
+                                Telegram.WebApp.showAlert('Введите ID пользователя');
+                            }
+                            return;
+                        }
+                        
+                        const user = state.adminStats.allUsers[userId] || {
+                            id: userId,
+                            name: `User ${userId}`,
+                            questions: 0,
+                            lastActive: new Date().toISOString()
+                        };
+                        
+                        if (plan === 'free') {
+                            user.premiumUntil = null;
+                            if (userId === (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.id?.toString())) {
+                                state.userSettings.isPremium = false;
+                                this.saveSettings();
+                                this.updatePremiumUI();
+                                this.updateSidebarAd();
+                            }
+                        } else {
+                            const until = new Date();
+                            if (days === 0) {
+                                until.setFullYear(until.getFullYear() + 10);
+                            } else {
+                                until.setDate(until.getDate() + days);
+                            }
+                            user.premiumUntil = until.toISOString();
+                            if (userId === (Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.id?.toString())) {
+                                state.userSettings.isPremium = true;
+                                state.userSettings.premiumUntil = until.toISOString();
+                                this.saveSettings();
+                                this.updatePremiumUI();
+                                this.updateSidebarAd();
+                            }
+                        }
+                        
+                        state.adminStats.allUsers[userId] = user;
+                        
+                        state.adminStats.premiumHistory.push({
+                            userId: userId,
+                            userName: user.name,
+                            plan: plan,
+                            days: days,
+                            date: new Date().toISOString()
+                        });
+                        
+                        if (state.adminStats.premiumHistory.length > 50) {
+                            state.adminStats.premiumHistory = state.adminStats.premiumHistory.slice(-50);
+                        }
+                        
+                        this.saveAdminStats();
+                        this.updateAdminStats();
+                        
+                        DOM.adminPremiumUserId.value = '';
+                        DOM.adminPremiumDays.value = '';
+                        
+                        if (Telegram.WebApp && Telegram.WebApp.showAlert) {
+                            Telegram.WebApp.showAlert('Подписка обновлена');
+                        }
+                    });
+                    
+                    window.addEventListener('resize', () => {
+                        this.handleMobileView();
+                        if (window.innerWidth > 768) this.closeSidebar();
+                    });
+                    
+                    setInterval(() => {
+                        this.updateSidebarAd();
+                    }, 60000);
+                }
+            };
+
+            window.onTelegramAuth = onTelegramAuth;
+            document.addEventListener('DOMContentLoaded', () => App.init());
+        })();
+    </script>
+</body>
+</html>
