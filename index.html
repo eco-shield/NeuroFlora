@@ -3539,6 +3539,10 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                 },
 
                 addAd(text, link, erid) {
+                    if (!text.trim()) {
+                        alert('Введите текст рекламы');
+                        return;
+                    }
                     const newAd = {
                         text: text.trim(),
                         link: link.trim() || '',
