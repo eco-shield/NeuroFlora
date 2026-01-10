@@ -1664,6 +1664,53 @@
             font-weight: 700;
             color: var(--text-primary);
         }
+
+        .admin-ad-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .admin-ad-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .admin-ad-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .admin-ad-card-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .admin-ad-stat {
+            text-align: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .admin-ad-stat-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .admin-ad-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body>
@@ -1692,8 +1739,11 @@
                     <span id="new-chat-text">Новый чат</span>
                 </button>
                 
-                <div id="telegram-login-container" style="display: none;">
-                    <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="NeuroFloraBot" data-size="large" data-auth-url="https://yourdomain.com/auth/telegram" data-onauth="onTelegramAuthWidget"></script>
+                <div id="telegram-auth-container" style="display: none; margin-top: 12px;">
+                    <button id="telegram-auth-btn" style="width: 100%; padding: 12px; background: #0088cc; color: white; border: none; border-radius: var(--radius-md); font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fab fa-telegram"></i>
+                        <span>Войти через Telegram</span>
+                    </button>
                 </div>
             </div>
 
@@ -1980,6 +2030,7 @@
                     
                     <div class="admin-tabs">
                         <button class="admin-tab active" data-tab="ads" id="admin-tab-ads">Реклама</button>
+                        <button class="admin-tab" data-tab="users" id="admin-tab-users">Пользователи</button>
                     </div>
 
                     <div class="admin-tab-content active" id="admin-ads-tab">
@@ -2005,25 +2056,47 @@
 
                         <div class="section-title" style="margin-top: 24px;">
                             <i class="fas fa-list"></i>
-                            <span id="admin-ads-list-title">Статистика по рекламе</span>
+                            <span id="admin-ads-list-title">Управление рекламой</span>
                         </div>
                         
-                        <div style="max-height: 300px; overflow-y: auto; overflow-x: auto; margin-top: 16px;">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th id="admin-ad-col-index">#</th>
-                                        <th id="admin-ad-col-text">Текст</th>
-                                        <th id="admin-ad-col-link">Ссылка</th>
-                                        <th id="admin-ad-col-erid">ERID</th>
-                                        <th id="admin-ad-col-impressions">Показы</th>
-                                        <th id="admin-ad-col-clicks">Клики</th>
-                                        <th id="admin-ad-col-ctr">CTR</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-ads-list">
-                                </tbody>
-                            </table>
+                        <div class="admin-ads-list" id="admin-ads-list" style="max-height: 400px; overflow-y: auto; margin-top: 16px;">
+                        </div>
+                        
+                        <div class="section-title" style="margin-top: 24px;">
+                            <i class="fas fa-plus"></i>
+                            <span>Добавить новую рекламу</span>
+                        </div>
+                        
+                        <div class="admin-controls">
+                            <input type="text" class="admin-input" id="admin-new-ad-text" placeholder="Текст рекламы">
+                            <input type="text" class="admin-input" id="admin-new-ad-link" placeholder="Ссылка (необязательно)">
+                            <input type="text" class="admin-input" id="admin-new-ad-erid" placeholder="ERID (необязательно)">
+                            <button class="admin-button" id="admin-add-ad">
+                                <i class="fas fa-plus"></i>
+                                <span>Добавить</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-tab-content" id="admin-users-tab">
+                        <div class="section-title">
+                            <i class="fas fa-users"></i>
+                            <span>Статистика пользователей</span>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="admin-total-users">0</div>
+                                <div class="stat-label">Всего пользователей</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="admin-active-users">0</div>
+                                <div class="stat-label">Активных сегодня</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="admin-premium-users">0</div>
+                                <div class="stat-label">Premium</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2101,30 +2174,6 @@
                 selectedPremiumPlan: null,
                 adChangeInterval: null
             };
-
-            function onTelegramAuthWidget(user) {
-                handleTelegramAuth(user);
-            }
-
-            function handleTelegramAuth(user) {
-                DOM.userName.textContent = user.first_name || 'Пользователь';
-                if (user.username) {
-                    DOM.userName.textContent += ` (@${user.username})`;
-                }
-                
-                DOM.userAvatar.textContent = (user.first_name || 'П').charAt(0).toUpperCase();
-                document.getElementById('telegram-login-container').style.display = 'none';
-                
-                state.userSettings.telegramUser = user;
-                state.userSettings.isPremium = user.username ? checkPremiumByUsername(user.username) : false;
-                
-                App.saveSettings();
-                App.updatePremiumUI();
-            }
-
-            function checkPremiumByUsername(username) {
-                return PREMIUM_USERS.includes(username.toLowerCase());
-            }
 
             const loadFromStorage = (key, defaultValue) => {
                 try {
@@ -2318,741 +2367,6 @@
                     premiumBuyYearlyText: "Скоро",
                     premiumFooterText: "После оплаты подписка активируется автоматически.",
                     popularBadgeText: "ПОПУЛЯРНЫЙ"
-                },
-                en: {
-                    welcomeTitle: "NeuroFlora",
-                    welcomeSubtitle: "Your AI gardening assistant. Ask questions about plants, care, diseases and fertilizers.",
-                    placeholder: "Ask a question about plants...",
-                    typing: "Typing...",
-                    rateHelpful: "Helpful",
-                    rateNotHelpful: "Not helpful",
-                    copy: "Copy",
-                    delete: "Delete",
-                    regenerate: "Regenerate",
-                    noHistory: "No history",
-                    totalQuestions: "Total questions",
-                    helpfulAnswers: "Helpful answers",
-                    language: "Language",
-                    newChat: "New chat",
-                    clearChat: "Clear chat",
-                    settings: "Settings",
-                    online: "Online",
-                    aiDisclaimer: "Responses are generated by AI and may contain errors. Verify important information.",
-                    languageChanged: "Language changed",
-                    chatCleared: "Chat cleared",
-                    confirmClear: "Are you sure you want to clear the chat? All messages will be deleted.",
-                    confirmDeleteChat: "Delete this chat? This action cannot be undone.",
-                    sendError: "Sorry, an error occurred. Please try again later.",
-                    copySuccess: "Text copied",
-                    exampleQuestions: ["How to care for an orchid?", "Why do ficus leaves turn yellow?", "What fertilizers are suitable for roses?", "How often to water cacti?"],
-                    chat: "Chat",
-                    history: "Chat history",
-                    stats: "Statistics",
-                    interfaceLanguage: "Interface language",
-                    premium: "Premium",
-                    account: "Account",
-                    subscriptionStatus: "Subscription status",
-                    free: "Free",
-                    premiumStatus: "Premium",
-                    upgradeToPremium: "Upgrade to Premium!",
-                    upgradeText: "Get access to advanced features, faster responses and chat without ads",
-                    learnMore: "Learn more",
-                    premiumFeatures: "Advanced features",
-                    fastResponses: "Fast responses",
-                    premiumFeature1Desc: "Priority request processing",
-                    floraGPT: "FloraGPT 2.0",
-                    premiumFeature2Desc: "Improved model for accurate answers",
-                    noAds: "No ads",
-                    premiumFeature3Desc: "Clean interface without distracting ads",
-                    extendedLimit: "Extended limit",
-                    premiumFeature4Desc: "4000 characters instead of 2000",
-                    extendedHistory: "Extended history",
-                    monthly: "Monthly",
-                    yearly: "Yearly",
-                    buyPremium: "Buy Premium",
-                    popular: "POPULAR",
-                    perMonth: "per month",
-                    perYear: "per year",
-                    purchaseSuccess: "Premium activated!",
-                    purchaseError: "Purchase error. Try again later.",
-                    premiumModel: "FloraGPT 2.0",
-                    standardModel: "FloraGPT FREE",
-                    premiumFeatureBadge: "PREMIUM",
-                    advertising: "Advertising",
-                    purchaseUnavailable: "Function temporarily unavailable",
-                    adminPanel: "Admin Panel",
-                    admin: "Admin",
-                    adminStats: "Statistics",
-                    adminAds: "Ads",
-                    adminUsers: "Users",
-                    adminPremium: "Premium",
-                    adminTotalUsers: "Total Users",
-                    adminActiveUsers: "Active Today",
-                    adminPremiumUsers: "Premium",
-                    adminAdsStats: "Ad Statistics",
-                    adminAdsImpressions: "Impressions",
-                    adminAdsClicks: "Clicks",
-                    adminAdsCTR: "CTR",
-                    adminAdsManagement: "Ad Management",
-                    adminAdsStatus: "Ad Status",
-                    adminAdsStatusDesc: "Enable/disable ads for all users",
-                    adminAdsToggle: "Enabled",
-                    adminAdTitle: "Ad Title",
-                    adminAdText: "Ad Text",
-                    adminAdImage: "Image URL",
-                    adminAdLink: "Link URL",
-                    adminAdCompany: "Company",
-                    adminAdPosition: "Position",
-                    adminAdSave: "Save",
-                    adminAdsList: "Ads List",
-                    adminAdColTitle: "Title",
-                    adminAdColCompany: "Company",
-                    adminAdColPosition: "Position",
-                    adminAdColImpressions: "Impressions",
-                    adminAdColClicks: "Clicks",
-                    adminAdColActions: "Actions",
-                    adminEdit: "Edit",
-                    adminDelete: "Delete",
-                    adminUsersManagement: "User Management",
-                    adminUserSearch: "Search by ID or name",
-                    adminFilterAll: "All",
-                    adminFilterFree: "Free",
-                    adminFilterPremium: "Premium",
-                    adminSearch: "Search",
-                    adminUserColId: "ID",
-                    adminUserColName: "Name",
-                    adminUserColStatus: "Status",
-                    adminUserColQuestions: "Questions",
-                    adminUserColActions: "Actions",
-                    adminSetPremium: "Make Premium",
-                    adminRemovePremium: "Remove Premium",
-                    adminPremiumManagement: "Premium Management",
-                    adminPremiumUserId: "User ID",
-                    adminPlanFree: "Free",
-                    adminPlanMonthly: "Monthly",
-                    adminPlanYearly: "Yearly",
-                    adminPremiumDays: "Days (0 = forever)",
-                    adminApply: "Apply",
-                    adminPremiumHistory: "Subscription History",
-                    adminPremiumColUser: "User",
-                    adminPremiumColPlan: "Plan",
-                    adminPremiumColDate: "Date",
-                    adminPremiumColExpires: "Expires",
-                    adminPanelTitle: "Admin Panel",
-                    sidebarAdTitle: "Advertisement",
-                    sidebarAdText: "Support project development",
-                    sidebarAdCompany: "Company",
-                    modelName: "FloraGPT FREE",
-                    adminAdColIndex: "#",
-                    adminAdColText: "Text",
-                    adminAdsTotalImpressions: "Total Impressions",
-                    adminAdsTotalClicks: "Total Clicks",
-                    adminAdColLink: "Link",
-                    adminAdColErid: "ERID",
-                    adminAdAddText: "Add",
-                    premiumModalTitle: "Premium Subscription",
-                    premiumDescription: "Get access to advanced features",
-                    premiumFeature1Title: "Fast Responses",
-                    premiumFeature2Title: "FloraGPT 2.0",
-                    premiumFeature3Title: "No Ads",
-                    premiumFeature4Title: "Extended Limit",
-                    premiumFeature5Title: "Extended History",
-                    premiumPlanMonthlyTitle: "Monthly",
-                    premiumPlanYearlyTitle: "Yearly",
-                    premiumPriceMonthly: "150 ₽",
-                    premiumPriceYearly: "1500 ₽",
-                    premiumBuyMonthlyText: "Soon",
-                    premiumBuyYearlyText: "Soon",
-                    premiumFooterText: "Subscription activates automatically after payment.",
-                    popularBadgeText: "POPULAR"
-                },
-                uk: {
-                    welcomeTitle: "NeuroFlora",
-                    welcomeSubtitle: "Ваш AI-помічник з садівництва. Задавайте питання про рослини, догляд, хвороби та добрива.",
-                    placeholder: "Задайте питання про рослини...",
-                    typing: "Друкує...",
-                    rateHelpful: "Корисно",
-                    rateNotHelpful: "Не корисно",
-                    copy: "Копіювати",
-                    delete: "Видалити",
-                    regenerate: "Згенерувати знову",
-                    noHistory: "Історія порожня",
-                    totalQuestions: "Всього питань",
-                    helpfulAnswers: "Корисних відповідей",
-                    language: "Мова",
-                    newChat: "Новий чат",
-                    clearChat: "Очистити чат",
-                    settings: "Налаштування",
-                    online: "Онлайн",
-                    aiDisclaimer: "Відповіді згенеровані штучним інтелектом і можуть містити помилки. Перевіряйте важливу інформацію.",
-                    languageChanged: "Мову змінено",
-                    chatCleared: "Чат очищено",
-                    confirmClear: "Ви впевнені, що хочете очистити чат? Усі повідомлення будуть видалені.",
-                    confirmDeleteChat: "Видалити цей чат? Цю дію не можна скасувати.",
-                    sendError: "Вибачте, сталася помилка. Будь ласка, спробуйте пізніше.",
-                    copySuccess: "Текст скопійовано",
-                    exampleQuestions: ["Як доглядати за орхідеєю?", "Чому жовтіють листя у фікуса?", "Які добрива підходять для троянд?", "Як часто поливати кактуси?"],
-                    chat: "Чат",
-                    history: "Історія чатів",
-                    stats: "Статистика",
-                    interfaceLanguage: "Мова інтерфейсу",
-                    premium: "Premium",
-                    account: "Обліковий запис",
-                    subscriptionStatus: "Статус підписки",
-                    free: "Free",
-                    premiumStatus: "Premium",
-                    upgradeToPremium: "Перейдіть на Premium!",
-                    upgradeText: "Отримайте доступ до розширених функцій, пришвидшених відповідей та спілкуйтеся без реклами",
-                    learnMore: "Дізнатися більше",
-                    premiumFeatures: "Розширені можливості",
-                    fastResponses: "Пришвидшені відповіді",
-                    premiumFeature1Desc: "Пріоритетна обробка запитів",
-                    floraGPT: "FloraGPT 2.0",
-                    premiumFeature2Desc: "Покращена модель для точних відповідей",
-                    noAds: "Без реклами",
-                    premiumFeature3Desc: "Чистий інтерфейс без відволікаючої реклами",
-                    extendedLimit: "Розширений ліміт",
-                    premiumFeature4Desc: "4000 символів замість 2000",
-                    extendedHistory: "Розширена історія",
-                    monthly: "Щомісячна",
-                    yearly: "Річна",
-                    buyPremium: "Купити Premium",
-                    popular: "ПОПУЛЯРНИЙ",
-                    perMonth: "на місяць",
-                    perYear: "на рік",
-                    purchaseSuccess: "Premium активовано!",
-                    purchaseError: "Помилка при покупці. Спробуйте пізніше.",
-                    premiumModel: "FloraGPT 2.0",
-                    standardModel: "FloraGPT FREE",
-                    premiumFeatureBadge: "PREMIUM",
-                    advertising: "Реклама",
-                    purchaseUnavailable: "Функція тимчасово недоступна",
-                    adminPanel: "Адмін-панель",
-                    admin: "Адмін",
-                    adminStats: "Статистика",
-                    adminAds: "Реклама",
-                    adminUsers: "Користувачі",
-                    adminPremium: "Premium",
-                    adminTotalUsers: "Всього користувачів",
-                    adminActiveUsers: "Активних сьогодні",
-                    adminPremiumUsers: "Premium",
-                    adminAdsStats: "Статистика реклами",
-                    adminAdsImpressions: "Показів",
-                    adminAdsClicks: "Кліків",
-                    adminAdsCTR: "CTR",
-                    adminAdsManagement: "Управління рекламою",
-                    adminAdsStatus: "Статус реклами",
-                    adminAdsStatusDesc: "Увімкнути/вимкнути рекламу для всіх користувачів",
-                    adminAdsToggle: "Увімкнено",
-                    adminAdTitle: "Заголовок реклами",
-                    adminAdText: "Текст реклами",
-                    adminAdImage: "URL зображення",
-                    adminAdLink: "URL посилання",
-                    adminAdCompany: "Компанія",
-                    adminAdPosition: "Позиція",
-                    adminAdSave: "Зберегти",
-                    adminAdsList: "Список реклами",
-                    adminAdColTitle: "Заголовок",
-                    adminAdColCompany: "Компанія",
-                    adminAdColPosition: "Позиція",
-                    adminAdColImpressions: "Покази",
-                    adminAdColClicks: "Кліки",
-                    adminAdColActions: "Дії",
-                    adminEdit: "Змінити",
-                    adminDelete: "Видалити",
-                    adminUsersManagement: "Управління користувачами",
-                    adminUserSearch: "Пошук за ID або ім'ям",
-                    adminFilterAll: "Всі",
-                    adminFilterFree: "Free",
-                    adminFilterPremium: "Premium",
-                    adminSearch: "Знайти",
-                    adminUserColId: "ID",
-                    adminUserColName: "Ім'я",
-                    adminUserColStatus: "Статус",
-                    adminUserColQuestions: "Питання",
-                    adminUserColActions: "Дії",
-                    adminSetPremium: "Зробити Premium",
-                    adminRemovePremium: "Забрати Premium",
-                    adminPremiumManagement: "Управління Premium",
-                    adminPremiumUserId: "ID користувача",
-                    adminPlanFree: "Free",
-                    adminPlanMonthly: "Щомісячний",
-                    adminPlanYearly: "Річний",
-                    adminPremiumDays: "Днів (0 = назавжди)",
-                    adminApply: "Застосувати",
-                    adminPremiumHistory: "Історія підписок",
-                    adminPremiumColUser: "Користувач",
-                    adminPremiumColPlan: "План",
-                    adminPremiumColDate: "Дата",
-                    adminPremiumColExpires: "Закінчується",
-                    adminPanelTitle: "Панель адміністратора",
-                    sidebarAdTitle: "Реклама",
-                    sidebarAdText: "Підтримайте розвиток проекту",
-                    sidebarAdCompany: "Компанія",
-                    modelName: "FloraGPT FREE",
-                    adminAdColIndex: "#",
-                    adminAdColText: "Текст",
-                    adminAdsTotalImpressions: "Всього показів",
-                    adminAdsTotalClicks: "Всього кліків",
-                    adminAdColLink: "Посилання",
-                    adminAdColErid: "ERID",
-                    adminAdAddText: "Додати",
-                    premiumModalTitle: "Premium підписка",
-                    premiumDescription: "Отримайте доступ до розширених функцій",
-                    premiumFeature1Title: "Пришвидшені відповіді",
-                    premiumFeature2Title: "FloraGPT 2.0",
-                    premiumFeature3Title: "Без реклами",
-                    premiumFeature4Title: "Розширений ліміт",
-                    premiumFeature5Title: "Розширена історія",
-                    premiumPlanMonthlyTitle: "Щомісячна",
-                    premiumPlanYearlyTitle: "Річна",
-                    premiumPriceMonthly: "150 ₽",
-                    premiumPriceYearly: "1500 ₽",
-                    premiumBuyMonthlyText: "Скоро",
-                    premiumBuyYearlyText: "Скоро",
-                    premiumFooterText: "Після оплати підписка активується автоматично.",
-                    popularBadgeText: "ПОПУЛЯРНИЙ"
-                },
-                be: {
-                    welcomeTitle: "NeuroFlora",
-                    welcomeSubtitle: "Ваш AI-памочнік па садоўніцтве. Задавайце пытанні пра расліны, догляд, хваробы і ўгнаенні.",
-                    placeholder: "Задайце пытанне пра расліны...",
-                    typing: "Друкуе...",
-                    rateHelpful: "Карысна",
-                    rateNotHelpful: "Не карысна",
-                    copy: "Капіяваць",
-                    delete: "Выдаліць",
-                    regenerate: "Згенераваць нанова",
-                    noHistory: "Гісторыя пустая",
-                    totalQuestions: "Усяго пытанняў",
-                    helpfulAnswers: "Карысных адказаў",
-                    language: "Мова",
-                    newChat: "Новы чат",
-                    clearChat: "Ачысціць чат",
-                    settings: "Налады",
-                    online: "Ёнлайн",
-                    aiDisclaimer: "Адказы згенераваны штучным інтэлектам і могуць утрымліваць памылкі. Правярайце важную інфармацыю.",
-                    languageChanged: "Мову зменена",
-                    chatCleared: "Чат ачышчаны",
-                    confirmClear: "Вы ўпэўнены, што хочаце ачысціць чат? Усе паведамленні будуць выдалены.",
-                    confirmDeleteChat: "Выдаліць гэты чат? Гэта дзеянне нельга адмяніць.",
-                    sendError: "Прабачце, здарылася памылка. Калі ласка, паспрабуйце пазней.",
-                    copySuccess: "Текст скапіяваны",
-                    exampleQuestions: ["Як даглядаць за архідэяй?", "Чаму жоўцеюць лісце ў фікуса?", "Якія ўгнаенні падыходзяць для руж?", "Як часта паліваць кактусы?"],
-                    chat: "Чат",
-                    history: "Гісторыя чатаў",
-                    stats: "Статыстыка",
-                    interfaceLanguage: "Мова інтэрфейсу",
-                    premium: "Premium",
-                    account: "Акаўнт",
-                    subscriptionStatus: "Статус падпіскі",
-                    free: "Free",
-                    premiumStatus: "Premium",
-                    upgradeToPremium: "Перайдзіце на Premium!",
-                    upgradeText: "Атрымайце доступ да пашыраных функцый, паскораных адказаў і абменьвайцеся без рэкламы",
-                    learnMore: "Даведацца больш",
-                    premiumFeatures: "Пашыраныя магчымасці",
-                    fastResponses: "Паскораныя адказы",
-                    premiumFeature1Desc: "Прыярытэтная апрацоўка запытаў",
-                    floraGPT: "FloraGPT 2.0",
-                    premiumFeature2Desc: "Удасканаленая мадэль для дакладных адказаў",
-                    noAds: "Без рэкламы",
-                    premiumFeature3Desc: "Чысты інтэрфейс без адцягвальнай рэкламы",
-                    extendedLimit: "Пашыраны ліміт",
-                    premiumFeature4Desc: "4000 сімвалаў замест 2000",
-                    extendedHistory: "Пашыраная гісторыя",
-                    monthly: "Штомесячная",
-                    yearly: "Гадавая",
-                    buyPremium: "Купіць Premium",
-                    popular: "ПАПУЛЯРНЫ",
-                    perMonth: "у месяц",
-                    perYear: "у год",
-                    purchaseSuccess: "Premium актываваны!",
-                    purchaseError: "Памылка пры куплі. Паспрабуйце пазней.",
-                    premiumModel: "FloraGPT 2.0",
-                    standardModel: "FloraGPT FREE",
-                    premiumFeatureBadge: "PREMIUM",
-                    advertising: "Рэклама",
-                    purchaseUnavailable: "Функцыя часова недаступная",
-                    adminPanel: "Адмін-панэль",
-                    admin: "Адмін",
-                    adminStats: "Статыстыка",
-                    adminAds: "Рэклама",
-                    adminUsers: "Карыстальнікі",
-                    adminPremium: "Premium",
-                    adminTotalUsers: "Усяго карыстальнікаў",
-                    adminActiveUsers: "Актыўных сёння",
-                    adminPremiumUsers: "Premium",
-                    adminAdsStats: "Статыстыка рэкламы",
-                    adminAdsImpressions: "Паказаў",
-                    adminAdsClicks: "Клікаў",
-                    adminAdsCTR: "CTR",
-                    adminAdsManagement: "Кіраванне рэкламай",
-                    adminAdsStatus: "Статус рэкламы",
-                    adminAdsStatusDesc: "Уключыць/выключыць рэкламу для ўсіх карыстальнікаў",
-                    adminAdsToggle: "Уключана",
-                    adminAdTitle: "Загаловак рэкламы",
-                    adminAdText: "Тэкст рэкламы",
-                    adminAdImage: "URL выявы",
-                    adminAdLink: "URL спасылкі",
-                    adminAdCompany: "Кампанія",
-                    adminAdPosition: "Пазіцыя",
-                    adminAdSave: "Захаваць",
-                    adminAdsList: "Спіс рэкламы",
-                    adminAdColTitle: "Загаловак",
-                    adminAdColCompany: "Кампанія",
-                    adminAdColPosition: "Пазіцыя",
-                    adminAdColImpressions: "Паказы",
-                    adminAdColClicks: "Клікі",
-                    adminAdColActions: "Дзеянні",
-                    adminEdit: "Змяніць",
-                    adminDelete: "Выдаліць",
-                    adminUsersManagement: "Кіраванне карыстальнікамі",
-                    adminUserSearch: "Пошук па ID ці імі",
-                    adminFilterAll: "Усе",
-                    adminFilterFree: "Free",
-                    adminFilterPremium: "Premium",
-                    adminSearch: "Знайсці",
-                    adminUserColId: "ID",
-                    adminUserColName: "Імя",
-                    adminUserColStatus: "Статус",
-                    adminUserColQuestions: "Пытанні",
-                    adminUserColActions: "Дзеянні",
-                    adminSetPremium: "Зрабіць Premium",
-                    adminRemovePremium: "Забраць Premium",
-                    adminPremiumManagement: "Кіраванне Premium",
-                    adminPremiumUserId: "ID карыстальніка",
-                    adminPlanFree: "Free",
-                    adminPlanMonthly: "Штомесячны",
-                    adminPlanYearly: "Гадавы",
-                    adminPremiumDays: "Дзён (0 = назаўсёды)",
-                    adminApply: "Ужыць",
-                    adminPremiumHistory: "Гісторыя падпісак",
-                    adminPremiumColUser: "Карыстальнік",
-                    adminPremiumColPlan: "План",
-                    adminPremiumColDate: "Дата",
-                    adminPremiumColExpires: "Скончваецца",
-                    adminPanelTitle: "Панэль адміністратара",
-                    sidebarAdTitle: "Рэклама",
-                    sidebarAdText: "Падтрымайце развіццё праекта",
-                    sidebarAdCompany: "Кампанія",
-                    modelName: "FloraGPT FREE",
-                    adminAdColIndex: "#",
-                    adminAdColText: "Тэкст",
-                    adminAdsTotalImpressions: "Усяго паказаў",
-                    adminAdsTotalClicks: "Усяго клікаў",
-                    adminAdColLink: "Спасылка",
-                    adminAdColErid: "ERID",
-                    adminAdAddText: "Дадаць",
-                    premiumModalTitle: "Premium падпіска",
-                    premiumDescription: "Атрымайце доступ да пашыраных функцый",
-                    premiumFeature1Title: "Паскораныя адказы",
-                    premiumFeature2Title: "FloraGPT 2.0",
-                    premiumFeature3Title: "Без рэкламы",
-                    premiumFeature4Title: "Пашыраны ліміт",
-                    premiumFeature5Title: "Пашыраная гісторыя",
-                    premiumPlanMonthlyTitle: "Штомесячная",
-                    premiumPlanYearlyTitle: "Гадавая",
-                    premiumPriceMonthly: "150 ₽",
-                    premiumPriceYearly: "1500 ₽",
-                    premiumBuyMonthlyText: "Хутка",
-                    premiumBuyYearlyText: "Хутка",
-                    premiumFooterText: "Пасля аплаты падпіска актывуецца аўтаматычна.",
-                    popularBadgeText: "ПАПУЛЯРНЫ"
-                },
-                kk: {
-                    welcomeTitle: "NeuroFlora",
-                    welcomeSubtitle: "Сіздің AI бақшашылық көмекшісіңіз. Өсімдіктер, күтім, аурулар және тыңайтқыштар туралы сұрақтар қойыңыз.",
-                    placeholder: "Өсімдіктер туралы сұрақ қойыңыз...",
-                    typing: "Теріп жатыр...",
-                    rateHelpful: "Пайдалы",
-                    rateNotHelpful: "Пайдасыз",
-                    copy: "Көшіру",
-                    delete: "Жою",
-                    regenerate: "Қайта жасау",
-                    noHistory: "Тарих бос",
-                    totalQuestions: "Барлық сұрақтар",
-                    helpfulAnswers: "Пайдалы жауаптар",
-                    language: "Тіл",
-                    newChat: "Жаңа чат",
-                    clearChat: "Чатты тазалау",
-                    settings: "Баптаулар",
-                    online: "Онлайн",
-                    aiDisclaimer: "Жауаптар жасанды интеллект арқылы жасалған және қателері болуы мүмкін. Маңызды ақпаратты тексеріңіз.",
-                    languageChanged: "Тіл өзгертілді",
-                    chatCleared: "Чат тазаланды",
-                    confirmClear: "Чатты тазалағыңыз келетініне сенімдісіз бе? Барлық хабарламалар жойылады.",
-                    confirmDeleteChat: "Бұл чатты жою керек пе? Бұл әрекетті болдырмау мүмкін емес.",
-                    sendError: "Кешіріңіз, қате орын алды. Кейінірек қайталап көріңіз.",
-                    copySuccess: "Мәтін көшірілді",
-                    exampleQuestions: ["Орхидеяға қалай күтім жасау керек?", "Фикус жапырақтары неге сарғайды?", "Раушандарға қандай тыңайтқыштар жарасады?", "Кактустарды қаншалықты жиі суғару керек?"],
-                    chat: "Чат",
-                    history: "Чат тарихы",
-                    stats: "Статистика",
-                    interfaceLanguage: "Интерфейс тілі",
-                    premium: "Premium",
-                    account: "Аккаунт",
-                    subscriptionStatus: "Жазылым статусы",
-                    free: "Free",
-                    premiumStatus: "Premium",
-                    upgradeToPremium: "Premium-ға көшіңіз!",
-                    upgradeText: "Кеңейтілген мүмкіндіктерге, жылдам жауаптарға қол жеткізіп, жарнамасыз сөйлесіңіз",
-                    learnMore: "Толығырақ білу",
-                    premiumFeatures: "Кеңейтілген мүмкіндіктер",
-                    fastResponses: "Жылдам жауаптар",
-                    premiumFeature1Desc: "Сұрауларды басымды өңдеу",
-                    floraGPT: "FloraGPT 2.0",
-                    premiumFeature2Desc: "Дәл жауаптар үшін жақсартылған модель",
-                    noAds: "Жарнама жоқ",
-                    premiumFeature3Desc: "Алаңдататын жарнамасыз таза интерфейс",
-                    extendedLimit: "Кеңейтілген шек",
-                    premiumFeature4Desc: "2000 орнына 4000 таңба",
-                    extendedHistory: "Кеңейтілген тарих",
-                    monthly: "Айлық",
-                    yearly: "Жылдық",
-                    buyPremium: "Premium сатып алу",
-                    popular: "ТАНЫМАЛ",
-                    perMonth: "айына",
-                    perYear: "жылына",
-                    purchaseSuccess: "Premium белсендірілді!",
-                    purchaseError: "Сатып алу кезінде қате орын алды. Кейінірек қайталап көріңіз.",
-                    premiumModel: "FloraGPT 2.0",
-                    standardModel: "FloraGPT FREE",
-                    premiumFeatureBadge: "PREMIUM",
-                    advertising: "Жарнама",
-                    purchaseUnavailable: "Функция уақытша қолжетімсіз",
-                    adminPanel: "Әкімші панелі",
-                    admin: "Әкімші",
-                    adminStats: "Статистика",
-                    adminAds: "Жарнама",
-                    adminUsers: "Пайдаланушылар",
-                    adminPremium: "Premium",
-                    adminTotalUsers: "Барлық пайдаланушылар",
-                    adminActiveUsers: "Бүгін белсенді",
-                    adminPremiumUsers: "Premium",
-                    adminAdsStats: "Жарнама статистикасы",
-                    adminAdsImpressions: "Көрсетілім",
-                    adminAdsClicks: "Шерту",
-                    adminAdsCTR: "CTR",
-                    adminAdsManagement: "Жарнаманы басқару",
-                    adminAdsStatus: "Жарнама статусы",
-                    adminAdsStatusDesc: "Барлық пайдаланушылар үшін жарнаманы қосу/өшіру",
-                    adminAdsToggle: "Қосылған",
-                    adminAdTitle: "Жарнама тақырыбы",
-                    adminAdText: "Жарнама мәтіні",
-                    adminAdImage: "Сурет URL",
-                    adminAdLink: "Сілтеме URL",
-                    adminAdCompany: "Компания",
-                    adminAdPosition: "Позиция",
-                    adminAdSave: "Сақтау",
-                    adminAdsList: "Жарнама тізімі",
-                    adminAdColTitle: "Тақырып",
-                    adminAdColCompany: "Компания",
-                    adminAdColPosition: "Позиция",
-                    adminAdColImpressions: "Көрсетілім",
-                    adminAdColClicks: "Шерту",
-                    adminAdColActions: "Әрекеттер",
-                    adminEdit: "Өңдеу",
-                    adminDelete: "Жою",
-                    adminUsersManagement: "Пайдаланушыларды басқару",
-                    adminUserSearch: "ID немесе аты бойынша іздеу",
-                    adminFilterAll: "Барлығы",
-                    adminFilterFree: "Free",
-                    adminFilterPremium: "Premium",
-                    adminSearch: "Табу",
-                    adminUserColId: "ID",
-                    adminUserColName: "Аты",
-                    adminUserColStatus: "Статус",
-                    adminUserColQuestions: "Сұрақтар",
-                    adminUserColActions: "Әрекеттер",
-                    adminSetPremium: "Premium ету",
-                    adminRemovePremium: "Premium алу",
-                    adminPremiumManagement: "Premium басқару",
-                    adminPremiumUserId: "Пайдаланушы ID",
-                    adminPlanFree: "Free",
-                    adminPlanMonthly: "Айлық",
-                    adminPlanYearly: "Жылдық",
-                    adminPremiumDays: "Күн (0 = мәңгі)",
-                    adminApply: "Қолдану",
-                    adminPremiumHistory: "Жазылым тарихы",
-                    adminPremiumColUser: "Пайдаланушы",
-                    adminPremiumColPlan: "Жоспар",
-                    adminPremiumColDate: "Күні",
-                    adminPremiumColExpires: "Аяқталады",
-                    adminPanelTitle: "Әкімші панелі",
-                    sidebarAdTitle: "Жарнама",
-                    sidebarAdText: "Жобаны дамытуды қолдаңыз",
-                    sidebarAdCompany: "Компания",
-                    modelName: "FloraGPT FREE",
-                    adminAdColIndex: "#",
-                    adminAdColText: "Мәтін",
-                    adminAdsTotalImpressions: "Барлық көрсетілім",
-                    adminAdsTotalClicks: "Барлық шерту",
-                    adminAdColLink: "Сілтеме",
-                    adminAdColErid: "ERID",
-                    adminAdAddText: "Қосу",
-                    premiumModalTitle: "Premium жазылым",
-                    premiumDescription: "Кеңейтілген мүмкіндіктерге қол жеткізіңіз",
-                    premiumFeature1Title: "Жылдам жауаптар",
-                    premiumFeature2Title: "FloraGPT 2.0",
-                    premiumFeature3Title: "Жарнама жоқ",
-                    premiumFeature4Title: "Кеңейтілген шек",
-                    premiumFeature5Title: "Кеңейтілген тарих",
-                    premiumPlanMonthlyTitle: "Айлық",
-                    premiumPlanYearlyTitle: "Жылдық",
-                    premiumPriceMonthly: "150 ₽",
-                    premiumPriceYearly: "1500 ₽",
-                    premiumBuyMonthlyText: "Жақында",
-                    premiumBuyYearlyText: "Жақында",
-                    premiumFooterText: "Төлемнен кейін жазылым автоматты түрде белсендіріледі.",
-                    popularBadgeText: "ТАНЫМАЛ"
-                },
-                fr: {
-                    welcomeTitle: "NeuroFlora",
-                    welcomeSubtitle: "Votre assistant jardinage IA. Posez des questions sur les plantes, les soins, les maladies et les engrais.",
-                    placeholder: "Posez une question sur les plantes...",
-                    typing: "En train d'écrire...",
-                    rateHelpful: "Utile",
-                    rateNotHelpful: "Pas utile",
-                    copy: "Copier",
-                    delete: "Supprimer",
-                    regenerate: "Régénérer",
-                    noHistory: "Historique vide",
-                    totalQuestions: "Questions totales",
-                    helpfulAnswers: "Réponses utiles",
-                    language: "Langue",
-                    newChat: "Nouvelle discussion",
-                    clearChat: "Effacer la discussion",
-                    settings: "Paramètres",
-                    online: "En ligne",
-                    aiDisclaimer: "Les réponses sont générées par l'IA et peuvent contenir des erreurs. Vérifiez les informations importantes.",
-                    languageChanged: "Langue modifiée",
-                    chatCleared: "Discussion effacée",
-                    confirmClear: "Êtes-vous sûr de vouloir effacer la discussion ? Tous les messages seront supprimés.",
-                    confirmDeleteChat: "Supprimer cette discussion ? Cette action est irréversible.",
-                    sendError: "Désolé, une erreur s'est produite. Veuillez réessayer plus tard.",
-                    copySuccess: "Texte copié",
-                    exampleQuestions: ["Comment entretenir une orchidée ?", "Pourquoi les feuilles de ficus jaunissent-elles ?", "Quels engrais conviennent aux roses ?", "À quelle fréquence arroser les cactus ?"],
-                    chat: "Discussion",
-                    history: "Historique des discussions",
-                    stats: "Statistiques",
-                    interfaceLanguage: "Langue de l'interface",
-                    premium: "Premium",
-                    account: "Compte",
-                    subscriptionStatus: "Statut de l'abonnement",
-                    free: "Gratuit",
-                    premiumStatus: "Premium",
-                    upgradeToPremium: "Passez à Premium !",
-                    upgradeText: "Accédez à des fonctionnalités avancées, des réponses plus rapides et discutez sans publicité",
-                    learnMore: "En savoir plus",
-                    premiumFeatures: "Fonctionnalités avancées",
-                    fastResponses: "Réponses accélérées",
-                    premiumFeature1Desc: "Traitement prioritaire des demandes",
-                    floraGPT: "FloraGPT 2.0",
-                    premiumFeature2Desc: "Modèle amélioré pour des réponses précises",
-                    noAds: "Sans publicité",
-                    premiumFeature3Desc: "Interface propre sans publicité distrayante",
-                    extendedLimit: "Limite étendue",
-                    premiumFeature4Desc: "4000 caractères au lieu de 2000",
-                    extendedHistory: "Historique étendu",
-                    monthly: "Mensuelle",
-                    yearly: "Annuelle",
-                    buyPremium: "Acheter Premium",
-                    popular: "POPULAIRE",
-                    perMonth: "par mois",
-                    perYear: "par an",
-                    purchaseSuccess: "Premium activé !",
-                    purchaseError: "Erreur lors de l'achat. Veuillez réessayer plus tard.",
-                    premiumModel: "FloraGPT 2.0",
-                    standardModel: "FloraGPT GRATUIT",
-                    premiumFeatureBadge: "PREMIUM",
-                    advertising: "Publicité",
-                    purchaseUnavailable: "Fonction temporairement indisponible",
-                    adminPanel: "Panneau d'administration",
-                    admin: "Admin",
-                    adminStats: "Statistiques",
-                    adminAds: "Publicité",
-                    adminUsers: "Utilisateurs",
-                    adminPremium: "Premium",
-                    adminTotalUsers: "Total utilisateurs",
-                    adminActiveUsers: "Actifs aujourd'hui",
-                    adminPremiumUsers: "Premium",
-                    adminAdsStats: "Statistiques publicitaires",
-                    adminAdsImpressions: "Impressions",
-                    adminAdsClicks: "Clics",
-                    adminAdsCTR: "CTR",
-                    adminAdsManagement: "Gestion publicitaire",
-                    adminAdsStatus: "Statut de la publicité",
-                    adminAdsStatusDesc: "Activer/désactiver la publicité pour tous les utilisateurs",
-                    adminAdsToggle: "Activé",
-                    adminAdTitle: "Titre de la publicité",
-                    adminAdText: "Texte de la publicité",
-                    adminAdImage: "URL de l'image",
-                    adminAdLink: "URL du lien",
-                    adminAdCompany: "Entreprise",
-                    adminAdPosition: "Position",
-                    adminAdSave: "Enregistrer",
-                    adminAdsList: "Liste des publicités",
-                    adminAdColTitle: "Titre",
-                    adminAdColCompany: "Entreprise",
-                    adminAdColPosition: "Position",
-                    adminAdColImpressions: "Impressions",
-                    adminAdColClicks: "Clics",
-                    adminAdColActions: "Actions",
-                    adminEdit: "Modifier",
-                    adminDelete: "Supprimer",
-                    adminUsersManagement: "Gestion des utilisateurs",
-                    adminUserSearch: "Recherche par ID ou nom",
-                    adminFilterAll: "Tous",
-                    adminFilterFree: "Gratuit",
-                    adminFilterPremium: "Premium",
-                    adminSearch: "Rechercher",
-                    adminUserColId: "ID",
-                    adminUserColName: "Nom",
-                    adminUserColStatus: "Statut",
-                    adminUserColQuestions: "Questions",
-                    adminUserColActions: "Actions",
-                    adminSetPremium: "Rendre Premium",
-                    adminRemovePremium: "Retirer Premium",
-                    adminPremiumManagement: "Gestion Premium",
-                    adminPremiumUserId: "ID utilisateur",
-                    adminPlanFree: "Gratuit",
-                    adminPlanMonthly: "Mensuel",
-                    adminPlanYearly: "Annuel",
-                    adminPremiumDays: "Jours (0 = pour toujours)",
-                    adminApply: "Appliquer",
-                    adminPremiumHistory: "Historique des abonnements",
-                    adminPremiumColUser: "Utilisateur",
-                    adminPremiumColPlan: "Plan",
-                    adminPremiumColDate: "Date",
-                    adminPremiumColExpires: "Expire",
-                    adminPanelTitle: "Panneau d'administration",
-                    sidebarAdTitle: "Publicité",
-                    sidebarAdText: "Soutenez le développement du projet",
-                    sidebarAdCompany: "Entreprise",
-                    modelName: "FloraGPT GRATUIT",
-                    adminAdColIndex: "#",
-                    adminAdColText: "Texte",
-                    adminAdsTotalImpressions: "Impressions totales",
-                    adminAdsTotalClicks: "Clics totaux",
-                    adminAdColLink: "Lien",
-                    adminAdColErid: "ERID",
-                    adminAdAddText: "Ajouter",
-                    premiumModalTitle: "Abonnement Premium",
-                    premiumDescription: "Accédez à des fonctionnalités avancées",
-                    premiumFeature1Title: "Réponses accélérées",
-                    premiumFeature2Title: "FloraGPT 2.0",
-                    premiumFeature3Title: "Sans publicité",
-                    premiumFeature4Title: "Limite étendue",
-                    premiumFeature5Title: "Historique étendu",
-                    premiumPlanMonthlyTitle: "Mensuelle",
-                    premiumPlanYearlyTitle: "Annuelle",
-                    premiumPriceMonthly: "150 ₽",
-                    premiumPriceYearly: "1500 ₽",
-                    premiumBuyMonthlyText: "Bientôt",
-                    premiumBuyYearlyText: "Bientôt",
-                    premiumFooterText: "L'abonnement s'active automatiquement après paiement.",
-                    popularBadgeText: "POPULAIRE"
                 }
             };
 
@@ -3095,10 +2409,6 @@
                 modelName: document.getElementById('model-name'),
                 adminTabs: document.querySelectorAll('.admin-tab'),
                 adminTabContents: document.querySelectorAll('.admin-tab-content'),
-                adminPremiumUserId: document.getElementById('admin-premium-user-id'),
-                adminPremiumPlan: document.getElementById('admin-premium-plan'),
-                adminPremiumDays: document.getElementById('admin-premium-days'),
-                adminPremiumApply: document.getElementById('admin-premium-apply'),
                 adminAdsList: document.getElementById('admin-ads-list'),
                 adminAdsTotalImpressions: document.getElementById('admin-ads-total-impressions'),
                 adminAdsTotalClicks: document.getElementById('admin-ads-total-clicks'),
@@ -3107,15 +2417,19 @@
                 adminNewAdLink: document.getElementById('admin-new-ad-link'),
                 adminNewAdErid: document.getElementById('admin-new-ad-erid'),
                 adminAddAd: document.getElementById('admin-add-ad'),
-                adminAdsManagementList: document.getElementById('admin-ads-management-list'),
                 premiumPlanMonthly: document.getElementById('premium-plan-monthly'),
-                premiumPlanYearly: document.getElementById('premium-plan-yearly')
+                premiumPlanYearly: document.getElementById('premium-plan-yearly'),
+                telegramAuthBtn: document.getElementById('telegram-auth-btn'),
+                telegramAuthContainer: document.getElementById('telegram-auth-container'),
+                adminTotalUsers: document.getElementById('admin-total-users'),
+                adminActiveUsers: document.getElementById('admin-active-users'),
+                adminPremiumUsers: document.getElementById('admin-premium-users')
             };
 
             const API = {
                 async generateAIResponse(question) {
                     const controller = new AbortController();
-                    const timeout = state.userSettings.isPremium ? 15000 : 30000;
+                    const timeout = 60000;
                     setTimeout(() => controller.abort(), timeout);
 
                     try {
@@ -3127,12 +2441,7 @@
                         };
 
                         const languagePrompts = {
-                            ru: "Отвечай на русском языке простым текстом без форматирования.",
-                            en: "Respond in English with plain text only, no formatting.",
-                            uk: "Відповідай українською мовою простим текстом без форматування.",
-                            be: "Адказвай на беларускай мове простым тэкстам без фарматавання.",
-                            kk: "Қазақ тілінде жай мәтінмен пішімдеусіз жауап бер.",
-                            fr: "Répondez en français avec du texte brut uniquement, sans formatage."
+                            ru: "Отвечай на русском языке простым текстом без форматирования."
                         };
 
                         const model = "google/gemma-3n-e2b-it:free";
@@ -3320,11 +2629,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         state.ads = savedAds;
                     }
                     
-                    const isInTelegram = Telegram && Telegram.initData;
-                    if (!isInTelegram) {
-                        document.getElementById('telegram-login-container').style.display = 'block';
-                    }
-                    
                     this.setupUserProfile();
                     this.loadCurrentChat();
                     this.setupEventListeners();
@@ -3339,6 +2643,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     this.updateSidebarAd();
                     this.setupPremiumPlanSelection();
                     this.startAdRotation();
+                    this.setupTelegramAuth();
                     
                     if (Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user && Telegram.initDataUnsafe.user.id === ADMIN_ID) {
                         DOM.adminBtn.style.display = 'flex';
@@ -3348,31 +2653,13 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                 },
 
                 setupUserProfile() {
-                    if (Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user) {
-                        const user = Telegram.initDataUnsafe.user;
-                        let userName = user.first_name || 'Пользователь';
-                        if (user.username) {
-                            userName += ` (@${user.username})`;
-                            state.userSettings.isPremium = checkPremiumByUsername(user.username);
-                        }
-                        DOM.userName.textContent = escapeHtml(userName);
-                        
-                        if (user.photo_url) {
-                            DOM.userAvatar.style.backgroundImage = `url('${escapeHtml(user.photo_url)}')`;
-                            DOM.userAvatar.style.backgroundSize = 'cover';
-                            DOM.userAvatar.textContent = '';
-                        } else {
-                            DOM.userAvatar.textContent = userName.charAt(0).toUpperCase();
-                        }
-                        
-                        if (user.id === ADMIN_ID) {
-                            const adminBadge = document.createElement('div');
-                            adminBadge.className = 'admin-badge';
-                            adminBadge.innerHTML = '<i class="fas fa-shield-alt"></i>';
-                            DOM.userAvatar.appendChild(adminBadge);
-                        }
-                        
+                    const savedUser = loadFromStorage('neuroflora_user', null);
+                    if (savedUser) {
+                        DOM.userName.textContent = savedUser.name || 'Пользователь';
+                        DOM.userAvatar.textContent = (savedUser.name || 'П').charAt(0).toUpperCase();
+                        state.userSettings.isPremium = savedUser.isPremium || false;
                         this.updatePremiumUI();
+                        DOM.telegramAuthContainer.style.display = 'none';
                     }
                 },
 
@@ -3399,9 +2686,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     const t = texts[state.userSettings.language];
                     const time = Utils.formatTime(msg.timestamp);
                     const isUserMessage = msg.role === 'user';
-                    const author = isUserMessage 
-                        ? (Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.first_name || 'Вы') 
-                        : 'NeuroFlora';
+                    const author = isUserMessage ? 'Вы' : 'NeuroFlora';
                     
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `message ${isUserMessage ? 'user-message' : 'bot-message'}`;
@@ -3413,12 +2698,9 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     const avatar = document.createElement('div');
                     avatar.className = `message-avatar ${isUserMessage ? 'user-avatar-sm' : 'bot-avatar-sm'}`;
                     
-                    if (isUserMessage && Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.photo_url) {
-                        avatar.style.backgroundImage = `url('${escapeHtml(Telegram.initDataUnsafe.user.photo_url)}')`;
-                        avatar.style.backgroundSize = 'cover';
-                        avatar.textContent = '';
-                    } else if (isUserMessage) {
-                        const userName = (Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user?.first_name) || 'Вы';
+                    if (isUserMessage) {
+                        const savedUser = loadFromStorage('neuroflora_user', null);
+                        const userName = savedUser?.name || 'Вы';
                         avatar.textContent = userName.charAt(0).toUpperCase();
                     }
                     
@@ -3496,11 +2778,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     
                     if (!validateMessage(text)) {
                         const t = texts[state.userSettings.language];
-                        if (Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
-                            Telegram.WebApp.showAlert(`Сообщение слишком длинное (максимум ${state.userSettings.isPremium ? '4000' : '2000'} символов)`);
-                        } else {
-                            alert(`Сообщение слишком длинное (максимум ${state.userSettings.isPremium ? '4000' : '2000'} символов)`);
-                        }
+                        alert(`Сообщение слишком длинное (максимум ${state.userSettings.isPremium ? '4000' : '2000'} символов)`);
                         return;
                     }
                     
@@ -3526,22 +2804,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     Utils.scrollToBottom();
                     this.showTypingIndicator();
                     
-                    if (Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user) {
-                        const userId = Telegram.initDataUnsafe.user.id;
-                        if (!state.adminStats.allUsers[userId]) {
-                            state.adminStats.allUsers[userId] = {
-                                id: userId,
-                                name: Telegram.initDataUnsafe.user.first_name || 'Пользователь',
-                                questions: 0,
-                                premiumUntil: null,
-                                lastActive: new Date().toISOString()
-                            };
-                        }
-                        state.adminStats.allUsers[userId].questions = (state.adminStats.allUsers[userId].questions || 0) + 1;
-                        state.adminStats.allUsers[userId].lastActive = new Date().toISOString();
-                        this.saveAdminStats();
-                    }
-                    
                     try {
                         const aiResponse = await API.generateAIResponse(text);
                         this.hideTypingIndicator();
@@ -3561,9 +2823,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         this.updateStatistics();
                         
                         Utils.scrollToBottom();
-                        if (Telegram && Telegram.HapticFeedback) {
-                            Telegram.HapticFeedback.notificationOccurred('success');
-                        }
                     } catch (error) {
                         this.hideTypingIndicator();
                         const t = texts[state.userSettings.language];
@@ -3577,9 +2836,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         this.addMessageToChat(errorMessage);
                         this.renderMessage(errorMessage);
                         Utils.scrollToBottom();
-                        if (Telegram && Telegram.HapticFeedback) {
-                            Telegram.HapticFeedback.notificationOccurred('error');
-                        }
                     } finally {
                         DOM.sendButton.disabled = false;
                     }
@@ -3616,9 +2872,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         
                         this.updateStatistics();
                         Utils.scrollToBottom();
-                        if (Telegram && Telegram.HapticFeedback) {
-                            Telegram.HapticFeedback.notificationOccurred('success');
-                        }
                     } catch (error) {
                         this.hideTypingIndicator();
                         const t = texts[state.userSettings.language];
@@ -3632,9 +2885,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         this.addMessageToChat(errorMessage);
                         this.renderMessage(errorMessage);
                         Utils.scrollToBottom();
-                        if (Telegram && Telegram.HapticFeedback) {
-                            Telegram.HapticFeedback.notificationOccurred('error');
-                        }
                     }
                 },
 
@@ -3701,11 +2951,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         const text = messageDiv.querySelector('.message-content').textContent;
                         navigator.clipboard.writeText(text).then(() => {
                             const t = texts[state.userSettings.language];
-                            if (Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
-                                Telegram.WebApp.showAlert(t.copySuccess);
-                            } else {
-                                alert(t.copySuccess);
-                            }
+                            alert(t.copySuccess);
                         });
                     }
                 },
@@ -3728,9 +2974,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     this.loadCurrentChat();
                     this.loadHistoryList();
                     
-                    if (Telegram && Telegram.HapticFeedback) {
-                        Telegram.HapticFeedback.selectionChanged();
-                    }
                     if (Utils.isMobile()) this.closeSidebar();
                 },
 
@@ -3744,11 +2987,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         
                         this.loadCurrentChat();
                         this.updateStatistics();
-                        if (Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
-                            Telegram.WebApp.showAlert(t.chatCleared);
-                        } else {
-                            alert(t.chatCleared);
-                        }
+                        alert(t.chatCleared);
                     }
                 },
 
@@ -3963,10 +3202,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                 },
 
                 updateAdminStats() {
-                    if (!Telegram || !Telegram.initDataUnsafe || !Telegram.initDataUnsafe.user || Telegram.initDataUnsafe.user.id !== ADMIN_ID) {
-                        return;
-                    }
-                    
                     const t = texts[state.userSettings.language];
                     
                     state.adminStats.totalUsers = Object.keys(state.adminStats.allUsers).length;
@@ -3987,30 +3222,66 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         ((state.userSettings.adStats.totalClicks / state.userSettings.adStats.totalImpressions) * 100).toFixed(1) : '0.0';
                     DOM.adminAdsCTR.textContent = `${ctr}%`;
                     
+                    DOM.adminTotalUsers.textContent = state.adminStats.totalUsers;
+                    DOM.adminActiveUsers.textContent = state.adminStats.activeUsersToday;
+                    DOM.adminPremiumUsers.textContent = state.adminStats.premiumUsers;
+                    
                     this.updateAdsList();
                 },
 
                 updateAdsList() {
                     const t = texts[state.userSettings.language];
-                    DOM.adminAdsList.innerHTML = '';
+                    const container = DOM.adminAdsList;
+                    container.innerHTML = '';
                     
                     state.ads.forEach((ad, index) => {
                         const impressions = state.userSettings.adStats.impressions[index] || 0;
                         const clicks = state.userSettings.adStats.clicks[index] || 0;
                         const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(1) : '0.0';
                         
-                        const row = document.createElement('tr');
-                        row.innerHTML = DOMPurify.sanitize(`
-                            <td>${index + 1}</td>
-                            <td>${escapeHtml(ad.text.substring(0, 50) + (ad.text.length > 50 ? '...' : ''))}</td>
-                            <td>${ad.link || ''}</td>
-                            <td>${ad.erid || ''}</td>
-                            <td>${impressions}</td>
-                            <td>${clicks}</td>
-                            <td>${ctr}%</td>
+                        const card = document.createElement('div');
+                        card.className = 'admin-ad-card';
+                        card.innerHTML = DOMPurify.sanitize(`
+                            <div class="admin-ad-card-header">
+                                <div class="admin-ad-card-title">Реклама #${index + 1}</div>
+                                <div style="font-size: 12px; color: var(--text-tertiary);">ERID: ${ad.erid || 'Нет'}</div>
+                            </div>
+                            <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 14px;">
+                                ${escapeHtml(ad.text)}
+                            </div>
+                            <div style="margin-bottom: 12px; font-size: 14px;">
+                                <strong>Ссылка:</strong> ${ad.link ? escapeHtml(ad.link) : 'Нет'}
+                            </div>
+                            <div class="admin-ad-card-stats">
+                                <div class="admin-ad-stat">
+                                    <div class="admin-ad-stat-value">${impressions}</div>
+                                    <div class="admin-ad-stat-label">Показы</div>
+                                </div>
+                                <div class="admin-ad-stat">
+                                    <div class="admin-ad-stat-value">${clicks}</div>
+                                    <div class="admin-ad-stat-label">Клики</div>
+                                </div>
+                                <div class="admin-ad-stat">
+                                    <div class="admin-ad-stat-value">${ctr}%</div>
+                                    <div class="admin-ad-stat-label">CTR</div>
+                                </div>
+                            </div>
+                            <button class="admin-button" onclick="App.deleteAd(${index})" style="margin-top: 12px; width: 100%;">
+                                <i class="fas fa-trash"></i>
+                                <span>Удалить</span>
+                            </button>
                         `);
-                        DOM.adminAdsList.appendChild(row);
+                        container.appendChild(card);
                     });
+                },
+
+                deleteAd(index) {
+                    if (confirm('Удалить эту рекламу?')) {
+                        state.ads.splice(index, 1);
+                        saveToStorage('neuroflora_ads', state.ads);
+                        this.updateAdsList();
+                        this.updateSidebarAd();
+                    }
                 },
 
                 toggleTheme() {
@@ -4147,7 +3418,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         if (state.currentAd.isPremiumPromo) {
                             DOM.premiumModal.classList.add('active');
                             this.selectPremiumPlan(state.selectedPremiumPlan);
-                            if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                         } else if (state.currentAd.link && !state.userSettings.isPremium) {
                             const adIndex = state.ads.findIndex(ad => ad.text === state.currentAd.text);
                             if (adIndex !== -1) {
@@ -4193,6 +3463,38 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     }
                 },
 
+                setupTelegramAuth() {
+                    const savedUser = loadFromStorage('neuroflora_user', null);
+                    if (!savedUser) {
+                        DOM.telegramAuthContainer.style.display = 'block';
+                    }
+                    
+                    DOM.telegramAuthBtn.addEventListener('click', () => {
+                        const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                        const authUrl = `https://t.me/NeuroFloraBot?start=${token}`;
+                        window.open(authUrl, '_blank');
+                        
+                        localStorage.setItem('neuroflora_auth_token', token);
+                        setTimeout(() => this.checkAuth(token), 3000);
+                    });
+                },
+
+                checkAuth(token) {
+                    const savedToken = localStorage.getItem('neuroflora_auth_token');
+                    if (savedToken === token) {
+                        const mockUser = {
+                            name: 'Telegram User',
+                            id: Date.now(),
+                            isPremium: false
+                        };
+                        
+                        saveToStorage('neuroflora_user', mockUser);
+                        DOM.telegramAuthContainer.style.display = 'none';
+                        this.setupUserProfile();
+                        alert('Аккаунт успешно привязан!');
+                    }
+                },
+
                 saveChats() {
                     saveToStorage('neuroflora_chats', state.chats);
                 },
@@ -4223,7 +3525,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     DOM.premiumShortcutBtn.addEventListener('click', () => {
                         DOM.premiumModal.classList.add('active');
                         this.selectPremiumPlan(state.selectedPremiumPlan);
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                     });
                     DOM.menuToggle.addEventListener('click', () => this.toggleSidebar());
                     DOM.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
@@ -4238,61 +3539,44 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     DOM.settingsBtn.addEventListener('click', () => {
                         DOM.settingsModal.classList.add('active');
                         this.updateStatistics();
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                         if (Utils.isMobile()) this.closeSidebar();
                     });
                     DOM.premiumBtn.addEventListener('click', () => {
                         DOM.premiumModal.classList.add('active');
                         this.selectPremiumPlan(state.selectedPremiumPlan);
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                         if (Utils.isMobile()) this.closeSidebar();
                     });
                     DOM.adminBtn.addEventListener('click', () => {
                         DOM.adminModal.classList.add('active');
                         this.updateAdminStats();
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.show();
                         if (Utils.isMobile()) this.closeSidebar();
                     });
                     DOM.sidebarAd.addEventListener('click', (e) => {
                         if (e.target.tagName === 'A') return;
                         this.openAdLink();
                     });
-                    if (Telegram && Telegram.BackButton) {
-                        Telegram.BackButton.onClick(() => {
-                            DOM.settingsModal.classList.remove('active');
-                            DOM.premiumModal.classList.remove('active');
-                            DOM.adminModal.classList.remove('active');
-                            Telegram.BackButton.hide();
-                        });
-                    }
                     DOM.modalClose.addEventListener('click', () => {
                         DOM.settingsModal.classList.remove('active');
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.hide();
                     });
                     DOM.premiumModalClose.addEventListener('click', () => {
                         DOM.premiumModal.classList.remove('active');
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.hide();
                     });
                     DOM.adminModalClose.addEventListener('click', () => {
                         DOM.adminModal.classList.remove('active');
-                        if (Telegram && Telegram.BackButton) Telegram.BackButton.hide();
                     });
                     DOM.settingsModal.addEventListener('click', (e) => {
                         if (e.target === DOM.settingsModal) {
                             DOM.settingsModal.classList.remove('active');
-                            if (Telegram && Telegram.BackButton) Telegram.BackButton.hide();
                         }
                     });
                     DOM.premiumModal.addEventListener('click', (e) => {
                         if (e.target === DOM.premiumModal) {
                             DOM.premiumModal.classList.remove('active');
-                            if (Telegram && Telegram.BackButton) Telegram.BackButton.hide();
                         }
                     });
                     DOM.adminModal.addEventListener('click', (e) => {
                         if (e.target === DOM.adminModal) {
                             DOM.adminModal.classList.remove('active');
-                            if (Telegram && Telegram.BackButton) Telegram.BackButton.hide();
                         }
                     });
                     document.querySelectorAll('.language-option').forEach(option => {
@@ -4303,11 +3587,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                             this.updateInterfaceLanguage();
                             this.updateStatistics();
                             const t = texts[lang];
-                            if (Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
-                                Telegram.WebApp.showAlert(t.languageChanged);
-                            } else {
-                                alert(t.languageChanged);
-                            }
+                            alert(t.languageChanged);
                         });
                     });
                     document.querySelectorAll('.example-card').forEach(card => {
@@ -4320,6 +3600,51 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         });
                     });
                     
+                    DOM.adminTabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const tabName = tab.dataset.tab;
+                            
+                            DOM.adminTabs.forEach(t => t.classList.remove('active'));
+                            tab.classList.add('active');
+                            
+                            DOM.adminTabContents.forEach(content => {
+                                content.classList.remove('active');
+                                if (content.id === `admin-${tabName}-tab`) {
+                                    content.classList.add('active');
+                                }
+                            });
+                        });
+                    });
+                    
+                    DOM.adminAddAd.addEventListener('click', () => {
+                        const text = DOM.adminNewAdText.value.trim();
+                        const link = DOM.adminNewAdLink.value.trim();
+                        const erid = DOM.adminNewAdErid.value.trim();
+                        
+                        if (!text) {
+                            alert('Введите текст рекламы');
+                            return;
+                        }
+                        
+                        const newAd = {
+                            text: text,
+                            link: link || '',
+                            erid: erid || '',
+                            isPremiumPromo: false
+                        };
+                        
+                        state.ads.push(newAd);
+                        saveToStorage('neuroflora_ads', state.ads);
+                        
+                        DOM.adminNewAdText.value = '';
+                        DOM.adminNewAdLink.value = '';
+                        DOM.adminNewAdErid.value = '';
+                        
+                        this.updateAdsList();
+                        this.updateSidebarAd();
+                        alert('Реклама добавлена!');
+                    });
+                    
                     window.addEventListener('resize', () => {
                         this.handleMobileView();
                         if (window.innerWidth > 768) this.closeSidebar();
@@ -4327,7 +3652,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                 }
             };
 
-            window.onTelegramAuthWidget = onTelegramAuthWidget;
             document.addEventListener('DOMContentLoaded', () => App.init());
         })();
     </script>
