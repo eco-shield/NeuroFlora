@@ -142,6 +142,8 @@
             font-size: 18px;
             flex-shrink: 0;
             position: relative;
+            background-size: cover;
+            background-position: center;
         }
 
         .premium-badge {
@@ -1905,27 +1907,27 @@
                         </div>
                         <div class="language-grid">
                             <div class="language-option active" data-lang="ru">
-                                🇷🇺 Русский
+                                <i class="fas fa-language"></i> Русский
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="en">
-                                🇺🇸 English
+                                <i class="fas fa-language"></i> English
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="uk">
-                                🇺🇦 Українська
+                                <i class="fas fa-language"></i> Українська
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="be">
-                                🇧🇾 Беларуская
+                                <i class="fas fa-language"></i> Беларуская
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="kk">
-                                🇰🇿 Қазақша
+                                <i class="fas fa-language"></i> Қазақша
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="fr">
-                                🇫🇷 Français
+                                <i class="fas fa-language"></i> Français
                                 <span class="checkmark"></span>
                             </div>
                         </div>
@@ -2075,7 +2077,7 @@
                         
                         <div class="admin-controls">
                             <input type="text" class="admin-input" id="admin-new-ad-text" placeholder="Текст рекламы">
-                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания">
+                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания" style="display: none;">
                             <input type="text" class="admin-input" id="admin-new-ad-link" placeholder="Ссылка (необязательно)">
                             <input type="text" class="admin-input" id="admin-new-ad-erid" placeholder="ERID (необязательно)">
                             <button class="admin-button" id="admin-add-ad">
@@ -2169,19 +2171,19 @@
                 ads: [
                     {
                         text: "Подписывайтесь на официальный Telegram‑канал «НейроФлора», чтобы первыми узнавать новости!",
-                        company: "NeuroFlora",
+                        company: "Румянцев Семен Михайлович",
                         link: "https://t.me/eco_shield",
                         erid: "ERID123456789"
                     },
                     {
                         text: "Хотите разместить рекламу? Будем рады обсудить детали — напишите нам!",
-                        company: "NeuroFlora",
+                        company: "Румянцев Семен Михайлович",
                         link: "https://t.me/eco_shield_support_bot",
                         erid: "ERID987654321"
                     },
                     {
                         text: "Устали от рекламы? Оформите Premium подписку и общайтесь без отвлекающих сообщений.",
-                        company: "NeuroFlora",
+                        company: "Румянцев Семен Михайлович",
                         link: "",
                         erid: "ERID555555555",
                         isPremiumPromo: true
@@ -2322,7 +2324,7 @@
                     adminAdsImpressions: "Показов",
                     adminAdsClicks: "Кликов",
                     adminAdsCTR: "CTR",
-                    adminAdsManagement: "Управление рекламой",
+                    adminAdsManagement: "Управление рекламы",
                     adminAdsStatus: "Статус рекламы",
                     adminAdsStatusDesc: "Включить/выключить рекламу для всех пользователей",
                     adminAdsToggle: "Включено",
@@ -3218,7 +3220,7 @@
                             fr: "Répondez en français en texte brut sans mise en forme."
                         };
 
-                        const model = "meta-llama/llama-3.1-8b-instruct:free";
+                        const model = "openai/gpt-oss-120b:free";
                         const t = texts[state.userSettings.language] || texts.ru;
                         
                         const premiumPromptAddition = state.userSettings.isPremium ? 
@@ -3408,7 +3410,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         state.ads = [
                             {
                                 text: "Подписывайтесь на официальный Telegram‑канал «НейроФлора», чтобы первыми узнавать новости!",
-                                company: "NeuroFlora",
+                                company: "Румянцев Семен Михайлович",
                                 link: "https://t.me/eco_shield",
                                 erid: "ERID123456789"
                             }
@@ -3448,8 +3450,10 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         DOM.userName.textContent = savedUser.name || 'Пользователь';
                         if (savedUser.photo_url) {
                             DOM.userAvatar.style.backgroundImage = `url(${savedUser.photo_url})`;
+                            DOM.userAvatar.style.backgroundSize = 'cover';
                             DOM.userAvatar.textContent = '';
                         } else {
+                            DOM.userAvatar.style.backgroundImage = '';
                             DOM.userAvatar.textContent = (savedUser.name || 'П').charAt(0).toUpperCase();
                         }
                         state.userSettings.isPremium = savedUser.isPremium || false;
@@ -3501,7 +3505,9 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         if (savedUser?.photo_url) {
                             avatar.style.backgroundImage = `url(${savedUser.photo_url})`;
                             avatar.style.backgroundSize = 'cover';
+                            avatar.textContent = '';
                         } else {
+                            avatar.style.backgroundImage = '';
                             avatar.textContent = userName.charAt(0).toUpperCase();
                         }
                     }
@@ -4426,7 +4432,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     
                     DOM.adminAddAd.addEventListener('click', () => {
                         const text = DOM.adminNewAdText.value.trim();
-                        const company = DOM.adminNewAdCompany.value.trim();
                         const link = DOM.adminNewAdLink.value.trim();
                         const erid = DOM.adminNewAdErid.value.trim();
                         
@@ -4437,7 +4442,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         
                         const newAd = {
                             text: text,
-                            company: company || '',
+                            company: "Румянцев Семен Михайлович",
                             link: link || '',
                             erid: erid || '',
                             isPremiumPromo: false
@@ -4447,7 +4452,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         saveToStorage('neuroflora_ads', state.ads);
                         
                         DOM.adminNewAdText.value = '';
-                        DOM.adminNewAdCompany.value = '';
                         DOM.adminNewAdLink.value = '';
                         DOM.adminNewAdErid.value = '';
                         
