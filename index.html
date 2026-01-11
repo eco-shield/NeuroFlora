@@ -2131,16 +2131,12 @@
                         photo_url: user.photo_url
                     };
                     localStorage.setItem('neuroflora_user', JSON.stringify(userData));
-                    
-                    if (!Telegram.initData) {
-                        const authUrl = `https://t.me/NeuroFloraBot?start=connect_${user.id}`;
-                        window.open(authUrl, '_blank');
-                    }
                 }
             }
 
-            const ENCODED_API_KEY = "c2stb3ItdjEtZmFjMWJjMmE0NTI1Y2EwN2IzMzI5OTViNTdmYTQ1NDA1ZGU1ZDMyMDc0ODNhMmViNmJjZjRjNTc2NzdhMmYyNA==";
-            const OPENROUTER_API_KEY = atob(ENCODED_API_KEY);
+            const OPENROUTER_API_KEY_ENC = "c2stb3ItdjEtZmFjMWJjMmE0NTI1Y2EwN2IzMzI5OTViNTdmYTQ1NDA1ZGU1ZDMyMDc0ODNhMmViNmJjZjRjNTc2NzdhMmYyNA==";
+            const OPENROUTER_API_KEY = atob(OPENROUTER_API_KEY_ENC);
+            
             const API_URL = "https://openrouter.ai/api/v1/chat/completions";
             
             const ADMIN_ID = 1401948006;
@@ -3200,7 +3196,7 @@
             const API = {
                 async generateAIResponse(question) {
                     const controller = new AbortController();
-                    const timeout = 60000;
+                    const timeout = 120000;
                     setTimeout(() => controller.abort(), timeout);
 
                     try {
@@ -3220,7 +3216,7 @@
                             fr: "Répondez en français en texte brut sans mise en forme."
                         };
 
-                        const model = "openai/gpt-oss-120b:free";
+                        const model = "google/gemma-7b-it:free";
                         const t = texts[state.userSettings.language] || texts.ru;
                         
                         const premiumPromptAddition = state.userSettings.isPremium ? 
