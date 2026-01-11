@@ -3434,10 +3434,6 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         DOM.adminTag.style.display = 'inline-flex';
                         this.updateAdminStats();
                     }
-                    
-                    setInterval(() => {
-                        this.updateSidebarAd();
-                    }, 10000);
                 },
 
                 setupUserProfile() {
@@ -4296,7 +4292,12 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         DOM.telegramAuthContainer.style.display = 'none';
                         this.setupUserProfile();
                     } else {
-                        DOM.telegramAuthContainer.style.display = 'block';
+                        const savedUser = loadFromStorage('neuroflora_user', null);
+                        if (savedUser) {
+                            DOM.telegramAuthContainer.style.display = 'none';
+                        } else {
+                            DOM.telegramAuthContainer.style.display = 'block';
+                        }
                     }
                     
                     DOM.telegramAuthBtn.addEventListener('click', () => {
