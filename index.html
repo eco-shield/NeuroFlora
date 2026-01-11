@@ -1711,6 +1711,13 @@
             font-size: 12px;
             color: var(--text-secondary);
         }
+
+        .sidebar-ad-company {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 4px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -1749,6 +1756,7 @@
 
             <div class="sidebar-ad" id="sidebar-ad">
                 <div class="sidebar-ad-text" id="sidebar-ad-text"></div>
+                <div class="sidebar-ad-company" id="sidebar-ad-company" style="display: none;"></div>
                 <a href="#" class="sidebar-ad-link" id="sidebar-ad-link" target="_blank" style="display: none;"></a>
                 <div class="sidebar-ad-erid" id="sidebar-ad-erid" style="display: none;"></div>
             </div>
@@ -2067,6 +2075,7 @@
                         
                         <div class="admin-controls">
                             <input type="text" class="admin-input" id="admin-new-ad-text" placeholder="Текст рекламы">
+                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания">
                             <input type="text" class="admin-input" id="admin-new-ad-link" placeholder="Ссылка (необязательно)">
                             <input type="text" class="admin-input" id="admin-new-ad-erid" placeholder="ERID (необязательно)">
                             <button class="admin-button" id="admin-add-ad">
@@ -2116,9 +2125,15 @@
                     const userData = {
                         name: user.first_name || 'Пользователь',
                         id: user.id,
-                        isPremium: false
+                        isPremium: false,
+                        photo_url: user.photo_url
                     };
                     localStorage.setItem('neuroflora_user', JSON.stringify(userData));
+                    
+                    if (!Telegram.initData) {
+                        const authUrl = `https://t.me/NeuroFloraBot?start=connect_${user.id}`;
+                        window.open(authUrl, '_blank');
+                    }
                 }
             }
 
@@ -2154,16 +2169,19 @@
                 ads: [
                     {
                         text: "Подписывайтесь на официальный Telegram‑канал «НейроФлора», чтобы первыми узнавать новости!",
+                        company: "NeuroFlora",
                         link: "https://t.me/eco_shield",
                         erid: "ERID123456789"
                     },
                     {
                         text: "Хотите разместить рекламу? Будем рады обсудить детали — напишите нам!",
+                        company: "NeuroFlora",
                         link: "https://t.me/eco_shield_support_bot",
                         erid: "ERID987654321"
                     },
                     {
                         text: "Устали от рекламы? Оформите Premium подписку и общайтесь без отвлекающих сообщений.",
+                        company: "NeuroFlora",
                         link: "",
                         erid: "ERID555555555",
                         isPremiumPromo: true
@@ -3153,6 +3171,7 @@
                 accountStatus: document.getElementById('account-status'),
                 sidebarAd: document.getElementById('sidebar-ad'),
                 sidebarAdText: document.getElementById('sidebar-ad-text'),
+                sidebarAdCompany: document.getElementById('sidebar-ad-company'),
                 sidebarAdLink: document.getElementById('sidebar-ad-link'),
                 sidebarAdErid: document.getElementById('sidebar-ad-erid'),
                 modelName: document.getElementById('model-name'),
@@ -3163,6 +3182,7 @@
                 adminAdsTotalClicks: document.getElementById('admin-ads-total-clicks'),
                 adminAdsCTR: document.getElementById('admin-ads-ctr'),
                 adminNewAdText: document.getElementById('admin-new-ad-text'),
+                adminNewAdCompany: document.getElementById('admin-new-ad-company'),
                 adminNewAdLink: document.getElementById('admin-new-ad-link'),
                 adminNewAdErid: document.getElementById('admin-new-ad-erid'),
                 adminAddAd: document.getElementById('admin-add-ad'),
@@ -3388,6 +3408,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         state.ads = [
                             {
                                 text: "Подписывайтесь на официальный Telegram‑канал «НейроФлора», чтобы первыми узнавать новости!",
+                                company: "NeuroFlora",
                                 link: "https://t.me/eco_shield",
                                 erid: "ERID123456789"
                             }
@@ -3425,7 +3446,12 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     const savedUser = loadFromStorage('neuroflora_user', null);
                     if (savedUser) {
                         DOM.userName.textContent = savedUser.name || 'Пользователь';
-                        DOM.userAvatar.textContent = (savedUser.name || 'П').charAt(0).toUpperCase();
+                        if (savedUser.photo_url) {
+                            DOM.userAvatar.style.backgroundImage = `url(${savedUser.photo_url})`;
+                            DOM.userAvatar.textContent = '';
+                        } else {
+                            DOM.userAvatar.textContent = (savedUser.name || 'П').charAt(0).toUpperCase();
+                        }
                         state.userSettings.isPremium = savedUser.isPremium || false;
                         this.updatePremiumUI();
                         DOM.telegramAuthContainer.style.display = 'none';
@@ -3472,7 +3498,12 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     if (isUserMessage) {
                         const savedUser = loadFromStorage('neuroflora_user', null);
                         const userName = savedUser?.name || 'Вы';
-                        avatar.textContent = userName.charAt(0).toUpperCase();
+                        if (savedUser?.photo_url) {
+                            avatar.style.backgroundImage = `url(${savedUser.photo_url})`;
+                            avatar.style.backgroundSize = 'cover';
+                        } else {
+                            avatar.textContent = userName.charAt(0).toUpperCase();
+                        }
                     }
                     
                     const contentWrapper = document.createElement('div');
@@ -4027,6 +4058,9 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                                 ${escapeHtml(ad.text)}
                             </div>
                             <div style="margin-bottom: 12px; font-size: 14px;">
+                                <strong>Компания:</strong> ${ad.company ? escapeHtml(ad.company) : 'Нет'}
+                            </div>
+                            <div style="margin-bottom: 12px; font-size: 14px;">
                                 <strong>Ссылка:</strong> ${ad.link ? escapeHtml(ad.link) : 'Нет'}
                             </div>
                             <div class="admin-ad-card-stats">
@@ -4157,6 +4191,13 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         const gradientClass = Utils.getRandomGradientClass();
                         DOM.sidebarAd.className = 'sidebar-ad show ' + gradientClass;
                         
+                        if (ad.company) {
+                            DOM.sidebarAdCompany.textContent = ad.company;
+                            DOM.sidebarAdCompany.style.display = 'block';
+                        } else {
+                            DOM.sidebarAdCompany.style.display = 'none';
+                        }
+                        
                         if (ad.link) {
                             DOM.sidebarAdLink.href = ad.link;
                             DOM.sidebarAdLink.style.display = 'block';
@@ -4246,7 +4287,8 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         const userData = {
                             name: user.first_name || 'Пользователь',
                             id: user.id,
-                            isPremium: false
+                            isPremium: false,
+                            photo_url: user.photo_url
                         };
                         saveToStorage('neuroflora_user', userData);
                         DOM.telegramAuthContainer.style.display = 'none';
@@ -4256,7 +4298,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     }
                     
                     DOM.telegramAuthBtn.addEventListener('click', () => {
-                        const authUrl = `https://t.me/NeuroFloraBot?start=${state.userSessionId}`;
+                        const authUrl = `https://t.me/NeuroFloraBot?start=connect`;
                         window.open(authUrl, '_blank');
                     });
                 },
@@ -4384,6 +4426,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     
                     DOM.adminAddAd.addEventListener('click', () => {
                         const text = DOM.adminNewAdText.value.trim();
+                        const company = DOM.adminNewAdCompany.value.trim();
                         const link = DOM.adminNewAdLink.value.trim();
                         const erid = DOM.adminNewAdErid.value.trim();
                         
@@ -4394,6 +4437,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         
                         const newAd = {
                             text: text,
+                            company: company || '',
                             link: link || '',
                             erid: erid || '',
                             isPremiumPromo: false
@@ -4403,6 +4447,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         saveToStorage('neuroflora_ads', state.ads);
                         
                         DOM.adminNewAdText.value = '';
+                        DOM.adminNewAdCompany.value = '';
                         DOM.adminNewAdLink.value = '';
                         DOM.adminNewAdErid.value = '';
                         
