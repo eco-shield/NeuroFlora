@@ -2077,7 +2077,7 @@
                         
                         <div class="admin-controls">
                             <input type="text" class="admin-input" id="admin-new-ad-text" placeholder="Текст рекламы">
-                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания" style="display: none;">
+                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания">
                             <input type="text" class="admin-input" id="admin-new-ad-link" placeholder="Ссылка (необязательно)">
                             <input type="text" class="admin-input" id="admin-new-ad-erid" placeholder="ERID (необязательно)">
                             <button class="admin-button" id="admin-add-ad">
@@ -4308,7 +4308,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     }
                     
                     DOM.telegramAuthBtn.addEventListener('click', () => {
-                        const authUrl = `https://t.me/NeuroFloraBot?start=connect_${Date.now()}`;
+                        const authUrl = `https://t.me/NeuroFloraBot?start=connect`;
                         window.open(authUrl, '_blank');
                     });
                 },
@@ -4436,6 +4436,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     
                     DOM.adminAddAd.addEventListener('click', () => {
                         const text = DOM.adminNewAdText.value.trim();
+                        const company = DOM.adminNewAdCompany.value.trim();
                         const link = DOM.adminNewAdLink.value.trim();
                         const erid = DOM.adminNewAdErid.value.trim();
                         
@@ -4446,7 +4447,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         
                         const newAd = {
                             text: text,
-                            company: "Румянцев Семен Михайлович",
+                            company: company || "Румянцев Семен Михайлович",
                             link: link || '',
                             erid: erid || '',
                             isPremiumPromo: false
@@ -4456,6 +4457,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         saveToStorage('neuroflora_ads', state.ads);
                         
                         DOM.adminNewAdText.value = '';
+                        DOM.adminNewAdCompany.value = '';
                         DOM.adminNewAdLink.value = '';
                         DOM.adminNewAdErid.value = '';
                         
