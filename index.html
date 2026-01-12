@@ -2077,7 +2077,7 @@
                         
                         <div class="admin-controls">
                             <input type="text" class="admin-input" id="admin-new-ad-text" placeholder="Текст рекламы">
-                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания">
+                            <input type="text" class="admin-input" id="admin-new-ad-company" placeholder="Компания" value="Румянцев Семен Михайлович">
                             <input type="text" class="admin-input" id="admin-new-ad-link" placeholder="Ссылка (необязательно)">
                             <input type="text" class="admin-input" id="admin-new-ad-erid" placeholder="ERID (необязательно)">
                             <button class="admin-button" id="admin-add-ad">
@@ -4285,10 +4285,24 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     const tgAuth = urlParams.get('tg_auth');
                     
                     if (tgAuth) {
-                        localStorage.setItem('neuroflora_tg_auth', tgAuth);
+                        try {
+                            const tokenData = JSON.parse(atob(tgAuth));
+                            if (tokenData.user_id && tokenData.name) {
+                                const userData = {
+                                    name: tokenData.name,
+                                    id: tokenData.user_id,
+                                    isPremium: false,
+                                    photo_url: tokenData.photo_url || null
+                                };
+                                saveToStorage('neuroflora_user', userData);
+                                this.setupUserProfile();
+                            }
+                        } catch (e) {
+                            console.error('Error parsing Telegram auth data:', e);
+                        }
                     }
                     
-                    const savedTgAuth = localStorage.getItem('neuroflora_tg_auth');
+                    const savedUser = loadFromStorage('neuroflora_user', null);
                     
                     if (Telegram && Telegram.initDataUnsafe && Telegram.initDataUnsafe.user) {
                         const user = Telegram.initDataUnsafe.user;
@@ -4301,7 +4315,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         saveToStorage('neuroflora_user', userData);
                         DOM.telegramAuthContainer.style.display = 'none';
                         this.setupUserProfile();
-                    } else if (savedTgAuth) {
+                    } else if (savedUser) {
                         DOM.telegramAuthContainer.style.display = 'none';
                     } else {
                         DOM.telegramAuthContainer.style.display = 'block';
@@ -4436,7 +4450,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                     
                     DOM.adminAddAd.addEventListener('click', () => {
                         const text = DOM.adminNewAdText.value.trim();
-                        const company = DOM.adminNewAdCompany.value.trim();
+                        const company = DOM.adminNewAdCompany.value.trim() || "Румянцев Семен Михайлович";
                         const link = DOM.adminNewAdLink.value.trim();
                         const erid = DOM.adminNewAdErid.value.trim();
                         
@@ -4447,7 +4461,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         
                         const newAd = {
                             text: text,
-                            company: company || "Румянцев Семен Михайлович",
+                            company: company,
                             link: link || '',
                             erid: erid || '',
                             isPremiumPromo: false
@@ -4457,7 +4471,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         saveToStorage('neuroflora_ads', state.ads);
                         
                         DOM.adminNewAdText.value = '';
-                        DOM.adminNewAdCompany.value = '';
+                        DOM.adminNewAdCompany.value = "Румянцев Семен Михайлович";
                         DOM.adminNewAdLink.value = '';
                         DOM.adminNewAdErid.value = '';
                         
