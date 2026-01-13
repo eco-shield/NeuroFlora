@@ -1902,32 +1902,31 @@
                     </div>
                     <div class="settings-section">
                         <div class="section-title">
-                            <i class="fas fa-language"></i>
                             <span id="interface-language-text">Язык интерфейса</span>
                         </div>
                         <div class="language-grid">
                             <div class="language-option active" data-lang="ru">
-                                <i class="fas fa-language"></i> Русский
+                                <span class="flag">🇷🇺</span> Русский
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="en">
-                                <i class="fas fa-language"></i> English
+                                <span class="flag">🇺🇸</span> English
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="uk">
-                                <i class="fas fa-language"></i> Українська
+                                <span class="flag">🇺🇦</span> Українська
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="be">
-                                <i class="fas fa-language"></i> Беларуская
+                                <span class="flag">🇧🇾</span> Беларуская
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="kk">
-                                <i class="fas fa-language"></i> Қазақша
+                                <span class="flag">🇰🇿</span> Қазақша
                                 <span class="checkmark"></span>
                             </div>
                             <div class="language-option" data-lang="fr">
-                                <i class="fas fa-language"></i> Français
+                                <span class="flag">🇫🇷</span> Français
                                 <span class="checkmark"></span>
                             </div>
                         </div>
@@ -2140,7 +2139,6 @@
             const API_URL = "https://openrouter.ai/api/v1/chat/completions";
             
             const ADMIN_ID = 1401948006;
-            const PREMIUM_USERS = ['test_premium', 'admin_user', 'vip_user', 'neuro_user', 'flora_vip'];
             
             const state = {
                 currentChatId: 'default',
@@ -3216,7 +3214,7 @@
                             fr: "Répondez en français en texte brut sans mise en forme."
                         };
 
-                        const model = "openai/gpt-oss-120b:free";
+                        const model = "openai/gpt-3.5-turbo";
                         const t = texts[state.userSettings.language] || texts.ru;
                         
                         const premiumPromptAddition = state.userSettings.isPremium ? 
@@ -3236,7 +3234,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
 7. Не используй спецсимволы для выделения текста
 8. ${premiumPromptAddition}
 
-Вопрос: ${sanitizeInput(question)}`;
+Вопрос: ${question}`;
 
                         const data = {
                             model: model,
@@ -3282,7 +3280,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                             return cleanedContent.substring(0, maxLength);
                         }
                         
-                        return sanitizeInput(cleanedContent);
+                        return cleanedContent;
                     } catch (error) {
                         console.error('API Request Error:', error);
                         const t = texts[state.userSettings.language] || texts.ru;
@@ -3576,11 +3574,17 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
 
                 async sendMessage() {
                     const input = DOM.messageInput;
-                    const text = sanitizeInput(input.value);
+                    const text = input.value.trim();
                     
-                    if (!validateMessage(text)) {
+                    if (!text) {
                         const t = texts[state.userSettings.language] || texts.ru;
-                        alert(`Сообщение слишком длинное (максимум ${state.userSettings.isPremium ? '4000' : '2000'} символов)`);
+                        alert('Сообщение не может быть пустым');
+                        return;
+                    }
+                    
+                    const maxLength = state.userSettings.isPremium ? 4000 : 2000;
+                    if (text.length > maxLength) {
+                        alert(`Сообщение слишком длинное (максимум ${maxLength} символов)`);
                         return;
                     }
                     
@@ -4294,8 +4298,9 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                                     isPremium: false,
                                     photo_url: tokenData.photo_url || null
                                 };
-                                saveToStorage('neuroflora_user', userData);
+                                localStorage.setItem('neuroflora_user', JSON.stringify(userData));
                                 this.setupUserProfile();
+                                return;
                             }
                         } catch (e) {
                             console.error('Error parsing Telegram auth data:', e);
@@ -4312,7 +4317,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                             isPremium: false,
                             photo_url: user.photo_url
                         };
-                        saveToStorage('neuroflora_user', userData);
+                        localStorage.setItem('neuroflora_user', JSON.stringify(userData));
                         DOM.telegramAuthContainer.style.display = 'none';
                         this.setupUserProfile();
                     } else if (savedUser) {
