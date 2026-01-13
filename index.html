@@ -2126,8 +2126,7 @@
                     const userData = {
                         name: user.first_name || 'Пользователь',
                         id: user.id,
-                        isPremium: false,
-                        photo_url: user.photo_url
+                        isPremium: false
                     };
                     localStorage.setItem('neuroflora_user', JSON.stringify(userData));
                 }
@@ -2388,7 +2387,7 @@
                     premiumPriceYearly: "1500 ₽",
                     premiumBuyMonthlyText: "Скоро",
                     premiumBuyYearlyText: "Скоро",
-                    premiumFooterText: "После оплаты подписка активируется автоматически.",
+                    premiumFooterText: "После оплата подписка активируется автоматически.",
                     popularBadgeText: "ПОПУЛЯРНЫЙ"
                 },
                 en: {
@@ -2881,7 +2880,7 @@
                     premiumFeature2Desc: "Дәл жауаптар үшін жақсартылған модель",
                     noAds: "Жарнамасыз",
                     premiumFeature3Desc: "Алаңдатпайтын жарнамасыз таза интерфейс",
-                    extendedLimit: "Кеңейтілген лимит",
+                    extendedLimit: "Кеңейтілжен лимит",
                     premiumFeature4Desc: "2000 орнына 4000 таңба",
                     extendedHistory: "Кеңейтілген тарих",
                     monthly: "Ай сайын",
@@ -4195,14 +4194,20 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         const gradientClass = Utils.getRandomGradientClass();
                         DOM.sidebarAd.className = 'sidebar-ad show ' + gradientClass;
                         
-                        if (ad.company && ad.erid) {
-                            DOM.sidebarAdCompany.textContent = `${ad.company}, ${ad.erid}`;
-                            DOM.sidebarAdCompany.style.display = 'block';
-                        } else if (ad.company) {
-                            DOM.sidebarAdCompany.textContent = ad.company;
-                            DOM.sidebarAdCompany.style.display = 'block';
-                        } else if (ad.erid) {
-                            DOM.sidebarAdCompany.textContent = ad.erid;
+                        let companyText = '';
+                        if (ad.company && ad.company.trim() !== '') {
+                            companyText = ad.company.trim();
+                        }
+                        if (ad.erid && ad.erid.trim() !== '') {
+                            if (companyText) {
+                                companyText += ', ' + ad.erid.trim();
+                            } else {
+                                companyText = ad.erid.trim();
+                            }
+                        }
+                        
+                        if (companyText) {
+                            DOM.sidebarAdCompany.textContent = companyText;
                             DOM.sidebarAdCompany.style.display = 'block';
                         } else {
                             DOM.sidebarAdCompany.style.display = 'none';
@@ -4314,8 +4319,7 @@ ${languagePrompts[state.userSettings.language] || languagePrompts.ru}
                         const userData = {
                             name: user.first_name || 'Пользователь',
                             id: user.id,
-                            isPremium: false,
-                            photo_url: user.photo_url
+                            isPremium: false
                         };
                         localStorage.setItem('neuroflora_user', JSON.stringify(userData));
                         DOM.telegramAuthContainer.style.display = 'none';
